@@ -1,4 +1,4 @@
-# Bài Cào Cái Simulator v2.0 - Research & Analysis Guide
+# Bài Cào Cái Simulator - Research & Analysis Guide
 
 Chào ông bạn! Repo này chứa mã nguồn và dữ liệu mô phỏng cho trò chơi Bài Cào Cái (phiên bản có luật đổi bài). Hệ thống sử dụng mô hình Monte Carlo để giả lập hàng triệu ván đấu nhằm phân tích tâm lý hành vi của AI.
 
