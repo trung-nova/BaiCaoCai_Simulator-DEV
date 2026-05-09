@@ -1,0 +1,25 @@
+# Build artifacts
+build/
+# *.exe (User requested to include these in GitHub)
+*.o
+*.obj
+*.pdb
+*.ilk
+
+# Database & CSV Data
+data/*.db
+data/*.csv
+data/*.txt
+
+# Exceptions for data (keep folder structure)
+!data/
+!data/.gitkeep
+
+# IDEs
+.vscode/
+.idea/
+.clangd/
+.antigravity/
+
+# Configuration
+config.ini

@@ -1,0 +1,98 @@
+#ifndef PLAYER_H
+#define PLAYER_H
+
+#include <vector>
+#include <string>
+#include <random>
+#include "Card.h"
+
+typedef std::vector<Card> Hand;
+
+struct SwapRecord {
+    int roundID;
+    std::string playerName;
+    int turn;
+    float satisfaction;
+    float desire;
+    float probability;
+    bool swapped;
+};
+
+enum class Archetype { SHARK, MANIAC, NIT, NORMAL };
+
+
+class Player {
+public:
+    std::string name;
+    Hand hand;
+    int balance;
+    bool isDealer;
+    float skillLevel;
+    float confidenceLevel;
+    float tradeDesire;
+    float k;
+    float gamma;
+    int wins = 0;
+    int roundsPlayed = 0;
+    int successfulSwapsCount = 0;
+    bool isEliminated = false;
+    std::vector<int> bankrollHistory;
+
+    Archetype archetype;
+    float baseSkillLevel;
+    float baseConfidenceLevel;
+    bool isTilt = false;
+    int consecutiveLosses = 0;
+    int startingBalance;
+    std::string lastHand = "---";
+    std::string lastHandPlain = "---";
+    int lastScore = 0;
+
+    bool isHuman;
+    int cachedScore = 0;
+    bool cachedBaTien = false;
+    float satisfactionTable[11]; // Pre-calculated for scores 0-10
+
+    Player(const std::string& name, int balance, float skillLevel, float confidenceLevel, float tradeDesire, float k = 1.0f, float gamma = 2.0f, Archetype archetype = Archetype::NORMAL);
+    virtual ~Player() {}
+
+    int getScore() const;
+    bool isBaTien() const;
+    float getSatisfaction(int score) const;
+    void swapCard(Card* out, Card* in);
+    void receiveCard(Card c);
+    void clearHand();
+    void updateCachedValues();
+    void updateSatisfactionTable();
+    void updateTiltStatus(class GameManager* manager, int currentRound);
+
+    // Polymorphic methods
+    virtual bool wantsToTrade(int roundID, int swapTurn, bool logMode = false, bool showLogic = false, SwapRecord* outRecord = nullptr) = 0;
+    virtual Card* getCardToTrade() = 0;
+    virtual void updateTradeDesire(int swapTurn) = 0;
+    virtual Player* pickSwapPartner(const std::vector<Player*>& candidates) = 0;
+};
+
+class AIPlayer : public Player {
+private:
+    std::mt19937 rng;
+    std::uniform_real_distribution<float> dist;
+
+public:
+    AIPlayer(const std::string& name, int balance, float skillLevel, float confidenceLevel, float tradeDesire, float k = 1.0f, float gamma = 2.0f, Archetype archetype = Archetype::NORMAL);
+    bool wantsToTrade(int roundID, int swapTurn, bool logMode = false, bool showLogic = false, SwapRecord* outRecord = nullptr) override;
+    Card* getCardToTrade() override;
+    void updateTradeDesire(int swapTurn) override;
+    Player* pickSwapPartner(const std::vector<Player*>& candidates) override;
+};
+
+class HumanPlayer : public Player {
+public:
+    HumanPlayer(const std::string& name, int balance, float skillLevel, float confidenceLevel, float tradeDesire, float k = 1.0f, float gamma = 2.0f, Archetype archetype = Archetype::NORMAL);
+    bool wantsToTrade(int roundID, int swapTurn, bool logMode = false, bool showLogic = false, SwapRecord* outRecord = nullptr) override;
+    Card* getCardToTrade() override;
+    void updateTradeDesire(int swapTurn) override;
+    Player* pickSwapPartner(const std::vector<Player*>& candidates) override;
+};
+
+#endif // PLAYER_H

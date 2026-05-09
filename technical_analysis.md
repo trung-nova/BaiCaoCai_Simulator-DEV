@@ -1,0 +1,124 @@
+# ĐẶC TẢ KỸ THUẬT CHI TIẾT (EXTREME DEEP DIVE): BÀI CÀO CÁI SIMULATOR
+
+Dự án này là một hệ thống mô phỏng Monte Carlo kết hợp với các mô hình tâm lý hành vi để phân tích chiến lược trò chơi Bài Cào Cái. Tài liệu này chi tiết hóa mọi khía cạnh tính toán và logic xử lý.
+
+---
+
+## 1. LOGIC ĐỊNH DANH VÀ TÍNH ĐIỂM BÀI (CARD ENGINE)
+
+Mỗi quân bài (`Card`) được định nghĩa bởi một bộ `Suit` (Chất) và `Rank` (Số).
+
+### 1.1. Giá trị Modulo (Modulo Value)
+Giá trị dùng để tính điểm số được chuẩn hóa qua hàm `getModuloValue()`:
+- **Rank 1 (Ace) đến 9**: Giá trị = face value (1-9).
+- **Rank 10 (Ten), 11 (Jack), 12 (Queen), 13 (King)**: Giá trị = 0.
+- **Quy tắc**: Điểm số của bộ bài 3 lá là tổng giá trị modulo của từng lá bài, sau đó lấy phần dư khi chia cho 10.
+  - Công thức: `Score = (V1 + V2 + V3) % 10`
+
+### 1.2. Phân loại Bộ bài Đặc biệt (Special Hands)
+- **Ba Tiên (Highest)**: Điều kiện: `(Rank1 >= 11) && (Rank2 >= 11) && (Rank3 >= 11)`. 
+- Trong hệ thống, Ba Tiên được gán giá trị **10** (cao hơn mọi điểm số từ 0-9) để đơn giản hóa việc so sánh.
+
+---
+
+## 2. THUẬT TOÁN ĐIỀU KHIỂN AI (AI BEHAVIORAL ENGINE)
+
+Quyết định của AI là sự kết hợp giữa mô hình toán học và biến số tâm lý.
+
+### 2.1. Hàm Thỏa mãn (Sigmoid Satisfaction - S)
+Hàm Sigmoid được dùng để ánh xạ điểm số sang một thang đo cảm xúc từ 0 (cực kỳ không hài lòng) đến 1 (cực kỳ hài lòng).
+
+**Công thức:**
+`S = 1 / (1 + exp(-k * (score - midpoint)))`
+
+Trong đó:
+- **`k` (Steepness)**: Độ nhạy cảm. Shark (2.5), Maniac (1.0), Nit (0.5).
+- **`midpoint`**: Điểm kỳ vọng (điểm mà tại đó Satisfaction = 0.5).
+  - Công thức: `midpoint = 5.0 - (confidenceLevel * 2.0)`
+  - Ý nghĩa: `confidenceLevel` càng cao thì `midpoint` càng thấp (AI tham vọng hơn, cần điểm cao hơn để thỏa mãn).
+
+### 2.2. Chỉ số Thèm muốn (Trade Desire - D)
+Quy định mức độ "nóng lòng" muốn đổi bài của người chơi qua các lượt (`swapTurn`).
+- **Lượt 1**: `D = (1.0 - S) * aggression`
+- **Lượt 2+**: `D_new = D_old + 0.15 * (1.0 - S) * aggression`
+- **Yếu tố Tham lam (Greed)**: Nếu `confidenceLevel > 0.7` và `S > 0.5`, `D` sẽ cộng thêm `0.1 * S`.
+
+### 2.3. Xác suất Quyết định cuối cùng (Final Probability - P)
+AI cân bằng giữa lý trí và cảm xúc:
+
+`P_final = (skillLevel * P_rational) + ((1.0 - skillLevel) * P_psych)`
+
+**Thành phần:**
+1.  **P_rational (Lý trí)**: `1.0 - S`. Quyết định dựa trên xác suất cải thiện điểm số thuần túy.
+2.  **P_psych (Tâm lý)**: `0.5 * (1.0 - S) + 0.5 * D + (confidenceLevel * S * 0.3)`. Phản ánh sự cay cú và tham lam bộc phát.
+
+---
+
+## 3. MÔ HÌNH TÂM LÝ TILT (MẤT BÌNH TĨNH)
+
+TILT xảy ra khi người chơi mất bình tĩnh do thua lỗ liên tục hoặc mất vốn lớn.
+
+### 3.1. Điều kiện kích hoạt
+`isTilt = (consecutiveLosses >= 5) || (balance < startingBalance * 0.7)`
+
+### 3.2. Biến đổi chỉ số khi TILT
+- `skillLevel = baseSkillLevel * 0.9` (Giảm 10% khả năng ra quyết định đúng).
+- `confidenceLevel = min(1.0, baseConfidenceLevel + 0.3)` (Tăng sự liều lĩnh).
+- Hệ quả: `P_final` sẽ tăng mạnh, người chơi sẽ đổi bài một cách bất chấp rủi ro, thường dẫn đến việc phá hỏng bộ bài đang tốt.
+
+---
+
+## 4. QUY TRÌNH TRAO ĐỔI BÀI (TRADING ALGORITHM)
+
+Trong `TradingState`, việc ghép cặp người chơi được thực hiện như sau:
+
+1.  **Lấy danh sách ứng viên**: Mọi người chơi có `wantsToTrade() == true`.
+2.  **Xáo trộn ngẫu nhiên**: Dùng `std::shuffle` để đảm bảo không có sự ưu tiên theo thứ tự đăng ký.
+3.  **Ghép cặp 1-1**:
+    - Người A đổi với người B. Mỗi người chọn 1 lá bài "xấu nhất" để đưa đi.
+    - Quân bài được hoán đổi trực tiếp trong bộ nhớ.
+    - Sau khi đổi, cả hai đều gọi `updateCachedValues()` để cập nhật điểm số mới ngay lập tức.
+4.  **Giới hạn**: Mỗi người chỉ được đổi thành công tối đa 3 lần/ván để tránh vòng lặp vô tận.
+
+---
+
+## 5. QUYẾT TOÁN VÀ THANH TOÁN (EVALUATION & PAYOUT)
+
+Tại `EvalState`, Nhà Cái (Dealer) đối đầu độc lập với từng Nhà Con (Player).
+
+### 5.1. So sánh House Edge
+- Nhà Con Thắng nếu: `Player_Score > Dealer_Score`.
+- Mọi trường hợp khác (thua hoặc hòa điểm): Nhà Cái thắng.
+- *Đây là lợi thế toán học cốt lõi của chủ trò.*
+
+### 5.2. Thuật toán Thanh toán (Payout Logic)
+Cho mỗi ván đấu:
+- **Nếu thắng**: Player nhận lại tiền cược (`Ante`) và một khoản lãi bằng `min(Ante, Dealer_Balance)`.
+- **Nếu Dealer phá sản**: Các Player thắng sau sẽ không nhận được đủ tiền lãi (phản ánh rủi ro vỡ nợ của nhà cái).
+
+---
+
+## 6. CÁC TỐI ƯU HÓA HIỆU NĂNG CHUYÊN SÂU (ADVANCED OPTIMIZATIONS)
+
+### 6.1. Sigmoid Lookup Table (O(1))
+Mảng `satisfactionTable[11]` lưu trữ kết quả Sigmoid cho các mức điểm từ 0-10.
+- Triệt tiêu hoàn toàn việc gọi hàm `exp()` (vốn mất hàng trăm chu kỳ CPU) trong vòng lặp mô phỏng.
+
+### 6.2. Zero-Allocation Core Loop
+- **State Factory**: Các trạng thái (`Betting`, `Dealing`...) là các đối tượng tĩnh (static). Việc chuyển trạng thái chỉ là thay đổi con trỏ, không có `new/delete`.
+- **Deck Recycling**: Bộ bài chỉ được tạo 1 lần. Mỗi ván chỉ gọi `reset()` để đặt lại vị trí rút bài và xáo lại.
+
+### 6.3. Caching & Batching
+- **Score Caching**: Điểm số được lưu vào biến thành viên. `getScore()` không tính toán lại trừ khi bài thay đổi.
+- **SQLite Batching**: Sử dụng `TRANSACTION` cho mỗi 1000 ván đấu để tối ưu hóa tốc độ ghi ổ đĩa, tăng tốc độ database lên gấp 50 lần.
+
+---
+
+## 7. CẤU TRÚC DỮ LIỆU SQLITE (DATABASE SCHEMA)
+
+- **Bảng `rounds`**: Lưu trữ kết quả tổng quát của từng ván (Dealer, Pot, Winners, Scores).
+- **Bảng `swaps`**: Lưu trữ chi tiết từng quyết định của AI (RoundID, Player, Turn, Satisfaction, Desire, Probability, Swapped).
+- **Bảng `analytics`**: (Tính toán từ view) Thống kê ROI, WinRate theo từng Archetype.
+
+---
+*Tài liệu này là nền tảng kỹ thuật cho việc phân tích dữ liệu và chứng minh tính đúng đắn của mô hình mô phỏng.*
