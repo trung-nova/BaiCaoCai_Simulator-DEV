@@ -121,4 +121,33 @@ Mảng `satisfactionTable[11]` lưu trữ kết quả Sigmoid cho các mức đi
 - **Bảng `analytics`**: (Tính toán từ view) Thống kê ROI, WinRate theo từng Archetype.
 
 ---
+
+## 8. HƯỚNG DẪN VẬN HÀNH HỆ THỐNG MÔ PHỎNG (OPERATIONAL GUIDE)
+
+Hệ thống hỗ trợ 4 chế độ vận hành chính, phục vụ các mục đích nghiên cứu khác nhau:
+
+### 8.1. Standard Simulation (Mô phỏng Tiêu chuẩn)
+- **Mục đích**: Chạy hàng triệu ván đấu để thu thập dữ liệu thống kê lớn.
+- **Tính năng**: 
+  - Cấu hình số lượng người chơi (2-17).
+  - Phân phối Archetype (Shark/Maniac/Nit) theo tỉ lệ %.
+  - Hai chế độ: **Persistent** (Cộng dồn tiền qua các đợt chạy) và **Reset** (Reset tiền về 10,000 sau mỗi đợt).
+- **Data DS**: Tự động xuất SQLite và CSV sau khi hoàn tất.
+
+### 8.2. Interactive Mode (Chế độ Tương tác)
+- **Mục đích**: Người chơi trực tiếp đối đầu với AI để kiểm chứng cảm giác thực tế.
+- **Tính năng**: Hiển thị bài của người chơi và cho phép chọn lá bài muốn đổi thủ công. AI vẫn chạy theo logic Sigmoid/Desire.
+
+### 8.3. Random Mode (Nghiên cứu Liên tục)
+- **Mục đích**: Stress test hệ thống với các tham số biến thiên ngẫu nhiên.
+- **Tính năng**: Tự động thay đổi nồng độ kỹ năng (Skill Concentration) và tỉ lệ cá tính giữa các ván.
+
+### 8.4. Log Mode (Phân tích Chi tiết)
+- **Mục đích**: "Mổ xẻ" logic của 1 ván đấu duy nhất.
+- **Tính năng**: Hiển thị tất cả bài tẩy, các chỉ số S (Satisfaction), D (Desire) và P (Probability) của từng AI trong thời gian thực.
+
+---
+*Dữ liệu xuất ra được lưu tại thư mục `data/` với timestamp tương ứng.*
+
+---
 *Tài liệu này là nền tảng kỹ thuật cho việc phân tích dữ liệu và chứng minh tính đúng đắn của mô hình mô phỏng.*
