@@ -122,6 +122,28 @@ Mảng `satisfactionTable[11]` lưu trữ kết quả Sigmoid cho các mức đi
 
 ---
 
+## 7. CÁC THAM SỐ CẤU HÌNH (CONFIGURATION PARAMETERS)
+
+Việc nắm vững các tham số này giúp ông bạn DS có thể "tinh chỉnh" môi trường mô phỏng để quan sát các hiện tượng khác nhau.
+
+### 7.1. Tham số Môi trường (Trong lúc chạy App)
+- **Skill Concentration (1-100)**: Độ tập trung kỹ năng. 
+  - Chỉ số này càng cao (ví dụ: 100), các AI sẽ có kỹ năng rất gần nhau (Standard Deviation thấp). 
+  - Chỉ số thấp (ví dụ: 1) sẽ tạo ra một môi trường "hỗn loạn" với sự chênh lệch trình độ cực lớn.
+- **Archetype Split (%)**: Tỉ lệ xuất hiện của các nhóm cá tính trong quần thể mô phỏng.
+- **Persistent vs Reset Mode**: 
+  - `Persistent`: Phân tích sự tích lũy tài sản dài hạn (Wealth Distribution).
+  - `Reset`: Phân tích hiệu suất thuần túy của chiến thuật trong từng đợt ngắn.
+
+### 7.2. Tham số Cá tính (Trong `config.ini`)
+Mỗi Archetype có 5 biến số lõi:
+- **`k` (Steepness)**: Độ dốc của hàm cảm xúc. `k` cao làm AI dễ bị kích động (vui/buồn cực nhanh theo điểm).
+- **`gamma`**: Hệ số điều chỉnh kỳ vọng. Ảnh hưởng đến việc AI coi mức điểm nào là "tạm chấp nhận được".
+- **`greed_threshold`**: Ngưỡng bắt đầu kích hoạt tâm lý "tham lam" khi đang có bài tốt.
+- **`min_skill` / `max_skill`**: Khoảng chặn kỹ năng cho từng nhóm (Ví dụ: Shark luôn có skill > 0.8).
+
+---
+
 ## 8. HƯỚNG DẪN VẬN HÀNH HỆ THỐNG MÔ PHỎNG (OPERATIONAL GUIDE)
 
 Hệ thống hỗ trợ 4 chế độ vận hành chính, phục vụ các mục đích nghiên cứu khác nhau:
