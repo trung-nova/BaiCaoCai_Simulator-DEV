@@ -20,11 +20,11 @@ struct RoundRecord {
 };
 
 struct ArchetypeConfig {
-    float k;
-    float gamma;
-    float greedThreshold;
-    float minSkill;
-    float maxSkill;
+    float k = 1.0f;
+    float gamma = 2.0f;
+    float greedThreshold = 0.5f;
+    float minSkill = 0.0f;
+    float maxSkill = 1.0f;
 };
 
 

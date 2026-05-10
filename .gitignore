@@ -21,5 +21,4 @@ data/*.txt
 .clangd/
 .antigravity/
 
-# Configuration
-config.ini
+
