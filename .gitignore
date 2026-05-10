@@ -1,6 +1,6 @@
 # Build artifacts
 build/
-# *.exe (User requested to include these in GitHub)
+*.exe
 *.o
 *.obj
 *.pdb
