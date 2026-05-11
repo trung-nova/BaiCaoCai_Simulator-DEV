@@ -95,6 +95,13 @@ int main() {
       manager.setPlayers(players);
       if (isInter || isLog) manager.logMode = true;
 
+      std::cout << "\n" << BOLD << CYAN << "--- Player Configuration ---" << RESET << "\n";
+      for (const auto& pl : manager.players) {
+        std::cout << std::left << std::setw(10) << pl->getName() << std::setw(10)
+                  << (pl->isHumanPlayer() ? "Human" : "AI") << std::fixed << std::setprecision(2)
+                  << std::setw(10) << pl->getSkillLevel() << std::setw(12) << pl->getBalance() << "\n";
+      }
+
       bool simActive = true;
       while (simActive) {
         if (subMode == 2) { for (auto& pl : manager.players) pl->resetStats(); manager.roundCount = 0; }
