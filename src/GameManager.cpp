@@ -66,10 +66,6 @@ void GameManager::playRound() {
 void GameManager::startStreaming() {
     currentSessionTS = getTimestamp();
     streamSwap.open("data/" + currentSessionTS + "_swap_decisions.csv");
-    streamRound.open("data/" + currentSessionTS + "_round_results.csv");
-    streamHistory.open("data/" + currentSessionTS + "_bankroll_history.csv");
-    
-    streamSwap.open("data/" + currentSessionTS + "_swap_decisions.csv");
     streamRound.open("data/" + currentSessionTS + "_rounds_summary.csv");
     streamHistory.open("data/" + currentSessionTS + "_bankroll_history.csv");
     
