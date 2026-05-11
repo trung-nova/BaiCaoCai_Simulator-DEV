@@ -68,7 +68,8 @@ public:
 
     std::map<Archetype, ArchetypeConfig> archetypeConfigs;
 
-    void loadConfig(const std::string& filename);
+    bool loadConfig(const std::string& filename);
+    void displayArchetypeConfigs();
 
 #ifdef USE_SQLITE
     DatabaseManager db;

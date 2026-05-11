@@ -249,11 +249,13 @@ void GameManager::printSummary() {
     std::cout << BOLD << YELLOW << separator << RESET << "\n";
 }
 
-void GameManager::loadConfig(const std::string& filename) {
+bool GameManager::loadConfig(const std::string& filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
-        std::cerr << "[Config] Warning: Could not open " << filename << ". Using defaults.\n";
-        return;
+        std::cerr << "\n" << BOLD << RED << "[ERROR] CRITICAL: Could not open " << filename << RESET << "\n";
+        std::cerr << YELLOW << "The simulation requires " << filename << " to define AI behavioral models.\n";
+        std::cerr << "Please ensure the file is in the same directory as the executable." << RESET << "\n\n";
+        return false;
     }
     
     std::string line, currentSection;
@@ -283,6 +285,32 @@ void GameManager::loadConfig(const std::string& filename) {
         else if (key == "max_skill") archetypeConfigs[arch].maxSkill = value;
     }
     std::cout << "[Config] Successfully loaded archetype personalities from " << filename << "\n";
+    return true;
+}
+
+void GameManager::displayArchetypeConfigs() {
+    std::cout << BOLD << CYAN << "\n--- AI BEHAVIORAL PROFILES (From Config) ---" << RESET << "\n";
+    std::cout << std::left << std::setw(10) << "Type" 
+              << std::setw(10) << "k" 
+              << std::setw(10) << "gamma" 
+              << std::setw(10) << "Greed" 
+              << std::setw(15) << "Skill Range" << "\n";
+    std::cout << "--------------------------------------------------------\n";
+    
+    auto printArch = [&](const std::string& name, Archetype a) {
+        auto& c = archetypeConfigs[a];
+        std::cout << std::left << std::setw(10) << name 
+                  << std::fixed << std::setprecision(2)
+                  << std::setw(10) << c.k 
+                  << std::setw(10) << c.gamma 
+                  << std::setw(10) << c.greedThreshold
+                  << "[" << c.minSkill << " - " << c.maxSkill << "]\n";
+    };
+
+    printArch("SHARK", Archetype::SHARK);
+    printArch("MANIAC", Archetype::MANIAC);
+    printArch("NIT", Archetype::NIT);
+    std::cout << "--------------------------------------------------------\n\n";
 }
 
 

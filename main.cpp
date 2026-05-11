@@ -86,9 +86,14 @@ int main() {
 
       std::vector<Player *> players;
       std::discrete_distribution<int> archetypeDist({sharkPct, maniacPct, nitPct});
-
       GameManager manager;
-      manager.loadConfig("config.ini");
+      if (!manager.loadConfig("config.ini")) {
+          std::cout << "Press Enter to exit...";
+          std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+          std::cin.get();
+          return 1;
+      }
+      manager.displayArchetypeConfigs();
 
       std::cout << "\nEnable Research Reports (Data Export)? (y/n): ";
       char exportToggle;
@@ -277,7 +282,13 @@ int main() {
           {sharkPct, maniacPct, nitPct});
 
       GameManager manager;
-      manager.loadConfig("config.ini");
+      if (!manager.loadConfig("config.ini")) {
+          std::cout << "Press Enter to exit...";
+          std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+          std::cin.get();
+          return 1;
+      }
+      manager.displayArchetypeConfigs();
 
       for (int i = 1; i < numPlayers; ++i) {
         int archChoice = archetypeDist(gen);
@@ -364,7 +375,13 @@ int main() {
           {sharkPct, maniacPct, nitPct});
 
       GameManager manager;
-      manager.loadConfig("config.ini");
+      if (!manager.loadConfig("config.ini")) {
+          std::cout << "Press Enter to exit...";
+          std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+          std::cin.get();
+          return 1;
+      }
+      manager.displayArchetypeConfigs();
 
       for (int i = 0; i < numPlayers; ++i) {
         int archChoice = archetypeDist(gen);
@@ -466,7 +483,10 @@ int main() {
         }
 
         GameManager manager;
-        manager.loadConfig("config.ini");
+        if (!manager.loadConfig("config.ini")) {
+            return 1;
+        }
+        // manager.displayArchetypeConfigs(); // Silent in random mode
 
         std::cout << "\nEnable Research Reports (Data Export)? (y/n): ";
         char exportToggle;
