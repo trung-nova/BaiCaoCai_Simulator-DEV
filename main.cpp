@@ -124,10 +124,13 @@ int main() {
 #endif
           if (!isInter && !isLog && ((i + 1) % 100 == 0 || i == numR - 1)) std::cout << "\rProgress: " << (i + 1) << " / " << numR << " (" << std::fixed << std::setprecision(1) << (float)(i+1)/numR*100.0f << "%)" << std::flush;
         }
+        if (manager.autoExport) {
 #ifdef USE_SQLITE
-        if (manager.autoExport) manager.db.endTransaction();
+            manager.db.endTransaction();
 #endif
-        if (manager.autoExport) manager.stopStreaming();
+            manager.stopStreaming();
+            manager.exportResearchReports();
+        }
         std::cout << "\nDone in " << std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - tS).count() << "s.\n";
         manager.printSummary();
         if (isLog) { std::cout << "\n" << YELLOW << "[Log Mode] Press Enter to return to menu..." << RESET; std::cin.ignore(1000, '\n'); std::cin.get(); break; }
