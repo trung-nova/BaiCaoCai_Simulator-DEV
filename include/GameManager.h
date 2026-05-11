@@ -44,6 +44,9 @@ public:
     std::ofstream streamRound;
     std::ofstream streamHistory;
     std::string currentSessionTS;
+    bool isMode3 = false;
+    int currentBatchID = 0;
+    std::ofstream streamAIConfigs;
 
     std::vector<std::string> tiltLogs;
 
@@ -58,6 +61,7 @@ public:
     void exportResearchReports(); // Now handles Summary and Tilt logs
     void printSummary();
     void saveInitialState();
+    void logAIConfigs();
 
     static void clearScreen();
 

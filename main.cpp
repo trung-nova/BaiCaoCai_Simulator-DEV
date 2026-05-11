@@ -140,6 +140,7 @@ int main() {
       int batches = safeInput<int>("Number of batches: ", 1, 1000);
       std::cout << "Enable Data Export? (y/n): "; char exT; std::cin >> exT; 
       manager.autoExport = (exT == 'y' || exT == 'Y');
+      manager.isMode3 = true;
 
       if (manager.autoExport) {
           manager.startStreaming();
@@ -150,11 +151,13 @@ int main() {
 
       std::cout << GREEN << "Running Random Mode (Continuous Research)..." << RESET << "\n";
       for (int b = 0; b < batches; ++b) {
+          manager.currentBatchID = b + 1;
           int nP = std::uniform_int_distribution<int>(2, 17)(gen);
           std::vector<std::shared_ptr<Player>> players;
           for (int i = 0; i < nP; ++i) players.push_back(createAI(i + 1, Archetype::NORMAL, 0.5f, 0.0f, 0.2f, manager, gen));
           manager.setPlayers(players); 
-          manager.isFinalRound = true; // Each batch is a final round for record purposes
+          if (manager.autoExport) manager.logAIConfigs();
+          manager.isFinalRound = true; 
           manager.playRound();
 #ifdef USE_SQLITE
           if (manager.autoExport && (b + 1) % 100 == 0) { manager.db.endTransaction(); manager.db.beginTransaction(); }

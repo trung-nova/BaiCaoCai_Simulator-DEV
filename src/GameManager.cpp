@@ -69,13 +69,23 @@ void GameManager::startStreaming() {
     streamRound.open("data/" + currentSessionTS + "_round_results.csv");
     streamHistory.open("data/" + currentSessionTS + "_bankroll_history.csv");
     
-    streamSwap << "RoundID,PlayerName,SwapTurn,Satisfaction,Desire,Probability,Swapped\n";
-    streamRound << "RoundNum,Dealer,Pot,WinnersCount,ScoresSummary\n";
+    streamSwap.open("data/" + currentSessionTS + "_swap_decisions.csv");
+    streamRound.open("data/" + currentSessionTS + "_rounds_summary.csv");
+    streamHistory.open("data/" + currentSessionTS + "_bankroll_history.csv");
     
-    // Header for bankroll
-    streamHistory << "Round";
-    for(auto& p : players) streamHistory << "," << p->getName();
-    streamHistory << "\n";
+    if (isMode3) {
+        streamAIConfigs.open("data/" + currentSessionTS + "_ai_configs.csv");
+        streamAIConfigs << "Batch,PlayerName,Archetype,Skill,Confidence,InitialBalance\n";
+        streamSwap << "Batch,RoundID,PlayerName,SwapTurn,Satisfaction,Desire,Probability,Swapped\n";
+        streamRound << "Batch,RoundNum,Dealer,Pot,WinnersCount,ScoresSummary\n";
+        streamHistory << "Batch,Round,PlayerName,Balance\n";
+    } else {
+        streamSwap << "RoundID,PlayerName,SwapTurn,Satisfaction,Desire,Probability,Swapped\n";
+        streamRound << "RoundNum,Dealer,Pot,WinnersCount,ScoresSummary\n";
+        streamHistory << "Round";
+        for(auto& p : players) streamHistory << "," << p->getName();
+        streamHistory << "\n";
+    }
 
 #ifdef USE_SQLITE
     db.connect("data/simulation_results.db");
@@ -88,6 +98,7 @@ void GameManager::stopStreaming() {
     if (streamSwap.is_open()) streamSwap.close();
     if (streamRound.is_open()) streamRound.close();
     if (streamHistory.is_open()) streamHistory.close();
+    if (streamAIConfigs.is_open()) streamAIConfigs.close();
 #ifdef USE_SQLITE
     db.disconnect();
 #endif
@@ -101,6 +112,19 @@ std::string GameManager::getTimestamp() {
     char buf[20];
     std::strftime(buf, sizeof(buf), "%Y%m%d_%H%M%S", parts);
     return std::string(buf);
+}
+
+void GameManager::logAIConfigs() {
+    if (!isStreaming || !streamAIConfigs.is_open()) return;
+    for (const auto& p : players) {
+        streamAIConfigs << currentBatchID << ","
+                        << p->getName() << ","
+                        << p->getArchetypeString() << ","
+                        << p->getSkillLevel() << ","
+                        << p->getConfidenceLevel() << ","
+                        << p->getBalance() << "\n";
+    }
+    streamAIConfigs.flush();
 }
 
 void GameManager::printSummary() {
