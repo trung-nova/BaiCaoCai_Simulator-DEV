@@ -123,8 +123,10 @@ void GameManager::printSummary() {
                   << std::fixed << std::setprecision(2) << std::setw(10) << p->getSkillLevel()
                   << std::setw(12) << p->getBalance()
                   << std::setw(10) << p->wins
-                  << std::setw(10) << p->roundsPlayed
-                  << std::fixed << std::setprecision(1) << winRate << "%";
+                  << std::setw(10) << p->roundsPlayed;
+        std::stringstream ss;
+        ss << std::fixed << std::setprecision(1) << winRate << "%";
+        std::cout << std::left << std::setw(12) << ss.str();
         std::cout << "        " << p->lastHand;
         int visibleLen = p->lastHandPlain.length();
         int pad = std::max(0, 25 - visibleLen);
