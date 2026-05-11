@@ -102,13 +102,25 @@ AIPlayer::AIPlayer(const std::string& name, int balance, float skillLevel, float
 }
 
 bool AIPlayer::wantsToTrade(int roundID, int swapTurn, bool logMode, bool showLogic, SwapRecord* outRecord) {
-    if (isBaTien()) return false;
     int score = getScore();
     float S = getSatisfaction(score);
     float D = tradeDesire;
 
-    if (successfulSwapsCount >= 3) return false;
-    if (swapTurn > 1 && (score >= 5 || S > 0.75f)) return false;
+    auto fillRecord = [&](bool dec, float prob) {
+        if (outRecord) {
+            outRecord->roundID = roundID;
+            outRecord->playerName = name;
+            outRecord->turn = swapTurn;
+            outRecord->satisfaction = S;
+            outRecord->desire = D;
+            outRecord->probability = prob;
+            outRecord->swapped = dec;
+        }
+    };
+
+    if (isBaTien()) { fillRecord(false, 0.0f); return false; }
+    if (successfulSwapsCount >= 3) { fillRecord(false, 0.0f); return false; }
+    if (swapTurn > 1 && (score >= 5 || S > 0.75f)) { fillRecord(false, 0.0f); return false; }
 
     float p_psych = 0.5f * (1.0f - S) + 0.5f * D + (confidenceLevel * S * 0.3f);
     p_psych = std::max(0.0f, std::min(1.0f, p_psych));
@@ -117,7 +129,7 @@ bool AIPlayer::wantsToTrade(int roundID, int swapTurn, bool logMode, bool showLo
     final_probability = std::max(0.05f, std::min(0.95f, final_probability));
 
     bool decision = dist(rng) < final_probability;
-    if (outRecord) *outRecord = {roundID, getName(), swapTurn, S, D, final_probability, decision};
+    fillRecord(decision, final_probability);
     return decision;
 }
 

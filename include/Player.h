@@ -9,13 +9,15 @@
 typedef std::vector<Card> Hand;
 
 struct SwapRecord {
-    int roundID;
-    std::string playerName;
-    int turn;
-    float satisfaction;
-    float desire;
-    float probability;
-    bool swapped;
+    int roundID = 0;
+    std::string playerName = "";
+    int turn = 0;
+    float satisfaction = 0.0f;
+    float desire = 0.0f;
+    float probability = 0.0f;
+    bool swapped = false;
+
+    SwapRecord() = default;
 };
 
 enum class Archetype { SHARK, MANIAC, NIT, NORMAL };
