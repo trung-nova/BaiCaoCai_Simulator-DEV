@@ -65,6 +65,7 @@ void GameManager::playRound() {
 
 void GameManager::startStreaming() {
     currentSessionTS = getTimestamp();
+#ifndef USE_SQLITE
     streamSwap.open("data/" + currentSessionTS + "_swap_decisions.csv");
     streamRound.open("data/" + currentSessionTS + "_rounds_summary.csv");
     streamHistory.open("data/" + currentSessionTS + "_bankroll_history.csv");
@@ -82,6 +83,7 @@ void GameManager::startStreaming() {
         for(auto& p : players) streamHistory << "," << p->getName();
         streamHistory << "\n";
     }
+#endif
 
 #ifdef USE_SQLITE
     db.connect("data/simulation_results.db");
@@ -111,7 +113,9 @@ std::string GameManager::getTimestamp() {
 }
 
 void GameManager::logAIConfigs() {
-    if (!isStreaming || !streamAIConfigs.is_open()) return;
+    if (!isStreaming) return;
+#ifndef USE_SQLITE
+    if (!streamAIConfigs.is_open()) return;
     for (const auto& p : players) {
         streamAIConfigs << currentBatchID << ","
                         << p->getName() << ","
@@ -121,6 +125,7 @@ void GameManager::logAIConfigs() {
                         << p->getBalance() << "\n";
     }
     streamAIConfigs.flush();
+#endif
 }
 
 void GameManager::printSummary() {

@@ -90,10 +90,12 @@ void TradingState::update(GameManager* manager) {
             }
             
             if (manager->isStreaming) {
+#ifndef USE_SQLITE
                 if (manager->isMode3) manager->streamSwap << manager->currentBatchID << ",";
                 manager->streamSwap << sr.roundID << "," << sr.playerName << "," << sr.turn << "," 
                                     << sr.satisfaction << "," << sr.desire << "," 
                                     << sr.probability << "," << (sr.swapped ? 1 : 0) << "\n";
+#endif
 #ifdef USE_SQLITE
                 manager->db.insertSwap(sr.roundID, sr.playerName, sr.turn, sr.satisfaction, sr.desire, sr.probability, sr.swapped);
 #endif
@@ -203,6 +205,7 @@ void EvalState::update(GameManager* manager) {
 
     int roundNum = manager->roundCount;
     if (manager->isStreaming) {
+#ifndef USE_SQLITE
         if (manager->isMode3) manager->streamRound << manager->currentBatchID << ",";
         manager->streamRound << roundNum << "," << dealer->getName() << "," << manager->currentPot << "," 
                              << (int)winners.size() << "," << "\"" << scoresSummary << "\"\n";
@@ -217,6 +220,7 @@ void EvalState::update(GameManager* manager) {
             manager->streamHistory << "\n";
         }
         manager->streamRound.flush(); manager->streamHistory.flush(); manager->streamSwap.flush();
+#endif
 
 #ifdef USE_SQLITE
         manager->db.insertRound(roundNum, dealer->getName(), manager->currentPot, (int)winners.size(), scoresSummary);
