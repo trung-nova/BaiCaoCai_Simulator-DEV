@@ -38,13 +38,9 @@ std::shared_ptr<Player> createAI(int id, Archetype arch, float meanS, float mean
     return std::make_shared<AIPlayer>("AI_" + std::to_string(id), 10000, skill, conf, cfg.greedThreshold, cfg.k, cfg.gamma, arch, gen());
 }
 
-struct SimParams {
-    int nP; float minS, maxS, conc, sP, mP;
-};
-
+struct SimParams { int nP; float minS, maxS, conc, sP, mP; };
 SimParams getParams() {
-    SimParams p;
-    p.nP = safeInput<int>("Enter number of players (2-17): ", 2, 17);
+    SimParams p; p.nP = safeInput<int>("Enter number of players (2-17): ", 2, 17);
     p.minS = safeInput<float>("Min Skill (0-1): ", 0.0f, 1.0f);
     p.maxS = safeInput<float>("Max Skill (0-1): ", p.minS, 1.0f);
     p.conc = safeInput<float>("Skill Concentration (1-100): ", 1.0f, 100.0f);
@@ -76,38 +72,31 @@ int main() {
     if (choice == 1 || choice == 2 || choice == 4) {
       bool isInter = (choice == 2), isLog = (choice == 4);
       int subMode = 1; if (choice == 1) subMode = safeInput<int>("1. Persistent | 2. Reset\nSelection: ", 1, 2);
-      
-      SimParams p = getParams();
-      float stdDev = 1.0f / p.conc;
+      SimParams p = getParams(); float stdDev = 1.0f / p.conc;
       std::vector<std::shared_ptr<Player>> players;
-      if (isInter) {
-          std::string hN; std::cout << "Enter your name: "; std::cin >> hN;
-          players.push_back(std::make_shared<HumanPlayer>(hN, 10000, -1.0f, 0.0f, 0.0f));
-      }
-
+      if (isInter) { std::string hN; std::cout << "Enter your name: "; std::cin >> hN; players.push_back(std::make_shared<HumanPlayer>(hN, 10000, -1.0f, 0.0f, 0.0f)); }
       std::discrete_distribution<int> archDist({p.sP, p.mP, 100.0f - p.sP - p.mP});
       for (int i = players.size(); i < p.nP; ++i) {
-        int aIdx = archDist(gen);
-        Archetype arch = (aIdx == 0) ? Archetype::SHARK : (aIdx == 1 ? Archetype::MANIAC : Archetype::NIT);
+        int aIdx = archDist(gen); Archetype arch = (aIdx == 0) ? Archetype::SHARK : (aIdx == 1 ? Archetype::MANIAC : Archetype::NIT);
         float mS = (arch == Archetype::SHARK) ? p.maxS : (arch == Archetype::MANIAC ? p.minS : (p.minS + p.maxS) / 2.0f);
         players.push_back(createAI(i + 1, arch, mS, (arch == Archetype::SHARK ? 0.2f : (arch == Archetype::MANIAC ? 0.8f : -0.5f)), stdDev, manager, gen));
       }
-      manager.setPlayers(players);
-      if (isInter || isLog) manager.logMode = true;
-
+      manager.setPlayers(players); if (isInter || isLog) manager.logMode = true;
       std::cout << "\n" << BOLD << CYAN << "--- Player Configuration ---" << RESET << "\n";
-      for (const auto& pl : manager.players) {
-        std::cout << std::left << std::setw(10) << pl->getName() << std::setw(10)
-                  << (pl->isHumanPlayer() ? "Human" : "AI") << std::fixed << std::setprecision(2)
-                  << std::setw(10) << pl->getSkillLevel() << std::setw(12) << pl->getBalance() << "\n";
-      }
+      for (const auto& pl : manager.players) std::cout << std::left << std::setw(10) << pl->getName() << std::setw(10) << (pl->isHumanPlayer() ? "Human" : "AI") << std::fixed << std::setprecision(2) << std::setw(10) << pl->getSkillLevel() << std::setw(12) << pl->getBalance() << "\n";
+      
+      std::cout << "\nEnable Research Reports (Data Export)? (y/n): ";
+      char exT; std::cin >> exT; manager.autoExport = (exT == 'y' || exT == 'Y');
 
       bool simActive = true;
       while (simActive) {
         if (subMode == 2) { for (auto& pl : manager.players) pl->resetStats(); manager.roundCount = 0; }
         int numR = (isLog) ? 1 : safeInput<int>("Number of rounds: ", 1, 10000000);
-        manager.simulationParams = "Seed: " + std::to_string(manager.simulationSeed) + "\nPlayers: " + std::to_string(p.nP);
-        
+        manager.simulationParams = "Used Seed: " + std::to_string(manager.simulationSeed) + "\nPlayers: " + std::to_string(p.nP) + "\nRounds: " + std::to_string(numR);
+        if (manager.autoExport) manager.startStreaming();
+#ifdef USE_SQLITE
+        if (manager.autoExport) manager.db.beginTransaction();
+#endif
         auto tS = std::chrono::high_resolution_clock::now();
         for (int i = 0; i < numR; ++i) {
           if (subMode == 2) { for (auto& pl : manager.players) { pl->setBalance(10000); pl->setEliminated(false); } }
@@ -115,19 +104,19 @@ int main() {
           if (active <= 1) break;
           if (i == numR - 1) manager.isFinalRound = true;
           manager.playRound();
-          if (!isInter && !isLog && ((i + 1) % 100 == 0 || i == numR - 1)) {
-              std::cout << "\rProgress: " << (i + 1) << " / " << numR << " (" << std::fixed << std::setprecision(1) << (float)(i+1)/numR*100.0f << "%)" << std::flush;
-          }
+#ifdef USE_SQLITE
+          if (manager.autoExport && (i + 1) % 1000 == 0) { manager.db.endTransaction(); manager.db.beginTransaction(); }
+#endif
+          if (!isInter && !isLog && ((i + 1) % 100 == 0 || i == numR - 1)) std::cout << "\rProgress: " << (i + 1) << " / " << numR << " (" << std::fixed << std::setprecision(1) << (float)(i+1)/numR*100.0f << "%)" << std::flush;
         }
+#ifdef USE_SQLITE
+        if (manager.autoExport) manager.db.endTransaction();
+#endif
+        if (manager.autoExport) manager.stopStreaming();
         std::cout << "\nDone in " << std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - tS).count() << "s.\n";
         manager.printSummary();
-        if (isLog) {
-            std::cout << "\n" << YELLOW << "[Log Mode] Press Enter to return to menu..." << RESET;
-            std::cin.ignore(1000, '\n'); std::cin.get();
-            break;
-        }
-        std::cout << "\n1. Run more | 2. Menu\nSelection: ";
-        if (safeInput<int>("", 1, 2) == 2) simActive = false;
+        if (isLog) { std::cout << "\n" << YELLOW << "[Log Mode] Press Enter to return to menu..." << RESET; std::cin.ignore(1000, '\n'); std::cin.get(); break; }
+        std::cout << "\n1. Run more | 2. Menu\nSelection: "; if (safeInput<int>("", 1, 2) == 2) simActive = false;
       }
     } else if (choice == 3) {
       int batches = safeInput<int>("Number of batches: ", 1, 1000);
