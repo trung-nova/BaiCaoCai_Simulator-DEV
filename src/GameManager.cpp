@@ -173,12 +173,17 @@ void GameManager::exportResearchReports() {
     for (auto& p : players) {
         out << std::left << std::setw(12) << p->getName() << std::setw(10) << p->getSkillLevel() << std::setw(12) << p->getBalance() << "\n";
     }
-
-    if (!tiltLogs.empty()) {
-        out << "\nAI TILT EVENTS LOG:\n";
-        for (const auto& log : tiltLogs) out << log << "\n";
-    }
     out.close();
+
+    std::ofstream tiltOut("data/" + currentSessionTS + "_tilt_events.log");
+    tiltOut << "--- AI TILT LOG ---\n";
+    tiltOut << "Used Seed: " << (simulationSeed >= 0 ? std::to_string(simulationSeed) : "Random") << "\n";
+    tiltOut << "-------------------\n";
+    if (tiltLogs.empty()) tiltOut << "No tilt events recorded.\n";
+    else {
+        for (const auto& log : tiltLogs) tiltOut << log << "\n";
+    }
+    tiltOut.close();
 }
 
 void GameManager::saveInitialState() {
