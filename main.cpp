@@ -121,7 +121,11 @@ int main() {
         }
         std::cout << "\nDone in " << std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - tS).count() << "s.\n";
         manager.printSummary();
-        if (isLog) break;
+        if (isLog) {
+            std::cout << "\n" << YELLOW << "[Log Mode] Press Enter to return to menu..." << RESET;
+            std::cin.ignore(1000, '\n'); std::cin.get();
+            break;
+        }
         std::cout << "\n1. Run more | 2. Menu\nSelection: ";
         if (safeInput<int>("", 1, 2) == 2) simActive = false;
       }
