@@ -1,39 +1,61 @@
-# Bài Cào Cái Simulator v3.0 - Research & Analysis Guide
+# Bài Cào Cái Simulator v3.0 (Academic Edition)
 
-Chào ông bạn! Hệ thống đã được nâng cấp lên phiên bản **v3.0 (Academic Edition)** với kiến trúc lập trình hướng đối tượng (OOP) chuẩn mực, sẵn sàng cho việc bảo vệ đồ án và phân tích nghiên cứu chuyên sâu.
+## Tổng quan
+**Bài Cào Cái Simulator** là một công cụ mô phỏng hành vi và nghiên cứu chiến thuật dựa trên trò chơi bài dân gian Bài Cào (phiên bản có luật đổi bài). Hệ thống được thiết kế để giả lập hàng triệu ván đấu với các mô hình nhân vật AI khác nhau, hỗ trợ việc phân tích dữ liệu nghiên cứu về tâm lý học hành vi và lý thuyết trò chơi.
 
-## 1. Tính năng mới (v3.0)
-*   **Encapsulation (Bao đóng)**: Bảo vệ dữ liệu người chơi tuyệt đối thông qua Access Modifiers (`protected`).
-*   **Smart Memory Management**: Sử dụng `std::shared_ptr` và `std::unique_ptr` để quản lý bộ nhớ, loại bỏ hoàn toàn lỗi Memory Leak.
-*   **Deterministic Simulation**: Hỗ trợ nạp `seed` từ `config.ini` hoặc nhập tay để tái lập chính xác kết quả mô phỏng (Reproducibility).
-*   **Unit Testing**: Tích hợp bộ kiểm thử `tests/test_rules.cpp` để xác minh luật chơi.
-*   **Robust Build System**: Script `build_all.bat` tự động đồng bộ cả 2 phiên bản CSV và SQLite với khả năng báo lỗi thông minh.
-
-## 2. Cấu trúc Dữ liệu (Data Structure)
-Dữ liệu được xuất ra thư mục `data/` dưới hai định dạng chính:
-
-### A. SQLite Database (`simulation_results.db`)
-Cấu trúc gồm 2 bảng chính:
-*   **`rounds`**: Tổng quan ván đấu (ID, Dealer, Pot, Winners, Scores Summary).
-*   **`swaps`**: Chi tiết quyết định AI (RoundID, Player, Turn, Satisfaction, Desire, Probability, Result).
-
-### B. Các file CSV & Reports
-*   `*_bankroll_history.csv`: Theo dõi biến động tài sản của từng người chơi.
-*   `*_summary.txt`: Báo cáo nghiên cứu tổng quát kèm tham số mô phỏng (bao gồm cả Seed).
-
-## 3. Các nhóm AI (Archetypes)
-Được cấu hình trong `config.ini`:
-1.  **SHARK**: Kỹ năng cao, lý trí, tối ưu hóa lợi nhuận dài hạn. (Tập trung quanh `maxSkill`).
-2.  **MANIAC**: Rất hung hãn, dễ bị ảnh hưởng bởi tâm lý "TILT". (Tập trung quanh `minSkill`).
-3.  **NIT**: Cực kỳ thận trọng, ưu tiên bảo toàn vốn. (Tập trung quanh mức trung bình).
-
-> [!NOTE]
-> Hệ thống sử dụng mô hình **Gaussian Mixture Model (GMM)** để tạo ra một quần thể người chơi có tính phân hóa xã hội cao, thay vì chỉ là một dải kỹ năng ngẫu nhiên đơn thuần.
-
-## 4. Hướng dẫn Build & Chạy
-1.  Đảm bảo đã cài đặt `g++` (MinGW) và `sqlite3`.
-2.  Chạy file `build_all.bat` để biên dịch.
-3.  Chạy `game.exe` (CSV) hoặc `game_sql.exe` (SQLite + CSV).
+Phiên bản **v3.0 Academic Edition** tập trung vào tính bền vững của mã nguồn (Robustness), khả năng tái lập kết quả (Reproducibility) và kiến trúc hướng đối tượng chuẩn mực.
 
 ---
-*Mọi logic về thuật toán AI Sigmoid và phân bổ xác suất được giữ nguyên 100% so với bản v2.0 để đảm bảo tính nhất quán của dữ liệu nghiên cứu.*
+
+## Các tính năng cốt lõi
+*   **Mô hình AI Heuristic**: Sử dụng hàm Sigmoid để mô phỏng sự thỏa mãn và quyết định rủi ro của con người.
+*   **Phân phối kỹ năng GMM**: Áp dụng mô hình Gaussian Mixture Model để tạo ra quần thể người chơi đa dạng (Shark, Maniac, Nit).
+*   **Quản lý bộ nhớ hiện đại**: Sử dụng Smart Pointers (`std::shared_ptr`, `std::unique_ptr`) đảm bảo an toàn bộ nhớ tuyệt đối.
+*   **Kiến trúc State Pattern**: Tách biệt logic các pha trong ván đấu (Betting, Dealing, Trading, Evaluation), dễ dàng mở rộng luật chơi.
+*   **Deterministic Seed**: Hỗ trợ kiểm soát hạt giống ngẫu nhiên (Seed) giúp kết quả mô phỏng có thể tái lập 100%.
+
+---
+
+## Các chế độ mô phỏng
+Hệ thống cung cấp 4 chế độ vận hành chính:
+
+1.  **Standard Simulation (AI vs AI)**: Mô phỏng quy mô lớn giữa các nhân vật AI. Hỗ trợ chế độ *Persistent* (giữ vốn) hoặc *Reset* (khởi tạo lại vốn sau mỗi đợt).
+2.  **Interactive Mode (User vs AI)**: Cho phép người dùng trực tiếp tham gia ván đấu để kiểm chứng hành vi của AI một cách trực quan.
+3.  **Random Mode**: Tự động thay đổi các tham số quần thể liên tục để tìm ra các điểm cực trị trong dữ liệu.
+4.  **Log Mode**: Ghi lại chi tiết từng bước di chuyển, logic suy nghĩ của AI và sự thay đổi bài trên tay để phân tích sâu.
+
+---
+
+## Cấu hình tham số
+Các cá tính AI được định nghĩa trong file `config.ini` thông qua các tham số:
+*   **k (Steepness)**: Độ nhạy cảm của tâm lý AI đối với sự thay đổi điểm số.
+*   **gamma (Risk Aversion)**: Mức độ sợ rủi ro.
+*   **Greed Threshold**: Ngưỡng bắt đầu nảy sinh tâm lý muốn tối ưu hóa bài thắng.
+*   **Skill Concentration**: Độ tập trung của kỹ năng quanh mức trung bình (Nồng độ càng cao, người chơi càng có trình độ tương đồng).
+
+---
+
+## Xuất dữ liệu & Báo cáo
+Hệ thống tự động xuất dữ liệu ra thư mục `data/` phục vụ cho việc xử lý hậu kỳ (Data Analytics):
+*   **SQLite Database (`.db`)**: Lưu trữ toàn bộ diễn biến ván đấu và lịch sử đổi bài để truy vấn SQL.
+*   **CSV Files**:
+    *   `*_bankroll_history.csv`: Lịch sử biến động tài sản.
+    *   `*_swap_decisions.csv`: Dữ liệu thô về các quyết định đổi bài của AI.
+*   **Research Summary**: Báo cáo tổng kết các chỉ số ROI, Win Rate, và tham số mô phỏng (bao gồm cả Seed).
+
+---
+
+## Hướng dẫn cài đặt & Biên dịch
+Dự án yêu cầu trình biên dịch C++ hỗ trợ chuẩn C++11 trở lên (khuyên dùng MinGW cho Windows).
+
+1.  **Biên dịch**: Sử dụng script tích hợp:
+    ```powershell
+    .\build_all.bat
+    ```
+2.  **Vận hành**:
+    *   `game.exe`: Phiên bản tiêu chuẩn xuất file CSV.
+    *   `game_sql.exe`: Phiên bản nâng cao hỗ trợ SQLite.
+3.  **Kiểm thử**: Chạy bộ Unit Test tại thư mục `tests/` để xác minh logic.
+
+---
+**Lưu ý**: Dữ liệu mô phỏng chỉ mang tính chất nghiên cứu hành vi và học thuật.
