@@ -86,7 +86,8 @@ void Player::updateTiltStatus(GameManager* manager, int currentRound) {
 }
 
 void Player::updateSatisfactionTable() {
-    float midpoint = 5.0f - (confidenceLevel * 2.0f);
+    // gamma shifts the expectation: higher gamma (risk aversion) means higher scores needed for satisfaction
+    float midpoint = (5.0f - (confidenceLevel * 2.0f)) + (gamma - 2.0f);
     for (int i = 0; i <= 10; ++i) {
         satisfactionTable[i] = 1.0f / (1.0f + std::exp(-k * (i - midpoint)));
     }
