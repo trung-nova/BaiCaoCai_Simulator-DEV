@@ -138,12 +138,36 @@ int main() {
       }
     } else if (choice == 3) {
       int batches = safeInput<int>("Number of batches: ", 1, 1000);
+      std::cout << "Enable Data Export? (y/n): "; char exT; std::cin >> exT; 
+      manager.autoExport = (exT == 'y' || exT == 'Y');
+
+      if (manager.autoExport) {
+          manager.startStreaming();
+#ifdef USE_SQLITE
+          manager.db.beginTransaction();
+#endif
+      }
+
+      std::cout << GREEN << "Running Random Mode (Continuous Research)..." << RESET << "\n";
       for (int b = 0; b < batches; ++b) {
           int nP = std::uniform_int_distribution<int>(2, 17)(gen);
           std::vector<std::shared_ptr<Player>> players;
           for (int i = 0; i < nP; ++i) players.push_back(createAI(i + 1, Archetype::NORMAL, 0.5f, 0.0f, 0.2f, manager, gen));
-          manager.setPlayers(players); manager.isFinalRound = true; manager.playRound();
+          manager.setPlayers(players); 
+          manager.isFinalRound = true; // Each batch is a final round for record purposes
+          manager.playRound();
+#ifdef USE_SQLITE
+          if (manager.autoExport && (b + 1) % 100 == 0) { manager.db.endTransaction(); manager.db.beginTransaction(); }
+#endif
           if ((b + 1) % 10 == 0) std::cout << "\rBatch Progress: " << (b + 1) << " / " << batches << std::flush;
+      }
+
+      if (manager.autoExport) {
+#ifdef USE_SQLITE
+          manager.db.endTransaction();
+#endif
+          manager.stopStreaming();
+          manager.exportResearchReports();
       }
       std::cout << "\nDone. Press Enter..."; std::cin.ignore(1000, '\n'); std::cin.get();
     }
