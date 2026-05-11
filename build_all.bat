@@ -1,35 +1,86 @@
-echo BẮT ĐẦU KIỂM TRA HỆ THỐNG...
-:: Kiểm tra sự tồn tại của các file
-if exist main.cpp (echo - main.cpp: OK) else (echo - THIẾU main.cpp && pause && exit)
-if exist sqlite3.c (echo - sqlite3.c: OK) else (echo - THIẾU sqlite3.c && pause && exit)
-if exist sqlite3.h (echo - sqlite3.h: OK) else (echo - THIẾU sqlite3.h && pause && exit)
+@echo off
+SETLOCAL EnableDelayedExpansion
+
+:: --- CONFIGURATION ---
+SET "BIN_CSV=game.exe"
+SET "BIN_SQL=game_sql.exe"
+SET "CC=g++"
+SET "FLAGS=-std=c++17 -I include -I . -O3 -static"
+SET "SQL_FLAGS=-DUSE_SQLITE"
+
+echo ============================================================
+echo   BAI CAO CAI SIMULATOR - BUILD SYSTEM (ASCII)
+echo ============================================================
+
+:: 1. Check Prerequisite
+echo [1/4] Checking source files...
+if not exist main.cpp ( echo [ERROR] main.cpp missing! && pause && exit /b 1 )
+if not exist sqlite3.c ( echo [ERROR] sqlite3.c missing! && pause && exit /b 1 )
+echo OK.
+
+:: 2. Build CSV Version (Lightweight)
+echo [2/4] Building CSV Version (%BIN_CSV%)...
+%CC% %FLAGS% -c main.cpp -o main_csv.o
+if !ERRORLEVEL! NEQ 0 goto :FAIL
+%CC% %FLAGS% -c src/Card.cpp -o Card_csv.o
+if !ERRORLEVEL! NEQ 0 goto :FAIL
+%CC% %FLAGS% -c src/ConcreteStates.cpp -o ConcreteStates_csv.o
+if !ERRORLEVEL! NEQ 0 goto :FAIL
+%CC% %FLAGS% -c src/Deck.cpp -o Deck_csv.o
+if !ERRORLEVEL! NEQ 0 goto :FAIL
+%CC% %FLAGS% -c src/GameManager.cpp -o GameManager_csv.o
+if !ERRORLEVEL! NEQ 0 goto :FAIL
+%CC% %FLAGS% -c src/Player.cpp -o Player_csv.o
+if !ERRORLEVEL! NEQ 0 goto :FAIL
+
+%CC% main_csv.o Card_csv.o ConcreteStates_csv.o Deck_csv.o GameManager_csv.o Player_csv.o -o %BIN_CSV% -static
+if !ERRORLEVEL! NEQ 0 goto :FAIL
+echo SUCCESS: %BIN_CSV% created.
+
+:: 3. Build SQL Version (Heavy)
+echo [3/4] Building SQL Version (%BIN_SQL%)...
+echo   (Compiling SQLite3... this may take 30-60 seconds)
+if not exist sqlite3.o (
+    %CC% -x c -c sqlite3.c -o sqlite3.o -O3
+    if !ERRORLEVEL! NEQ 0 goto :FAIL
+)
+
+%CC% %FLAGS% %SQL_FLAGS% -c main.cpp -o main_sql.o
+if !ERRORLEVEL! NEQ 0 goto :FAIL
+%CC% %FLAGS% %SQL_FLAGS% -c src/ConcreteStates.cpp -o ConcreteStates_sql.o
+if !ERRORLEVEL! NEQ 0 goto :FAIL
+%CC% %FLAGS% %SQL_FLAGS% -c src/GameManager.cpp -o GameManager_sql.o
+if !ERRORLEVEL! NEQ 0 goto :FAIL
+%CC% %FLAGS% %SQL_FLAGS% -c src/DatabaseManager.cpp -o DatabaseManager_sql.o
+if !ERRORLEVEL! NEQ 0 goto :FAIL
+
+:: Re-use common .o files if they don't depend on SQLITE flag
+:: Note: Card, Deck, Player currently don't use USE_SQLITE, but we'll use CSV ones for safety
+%CC% main_sql.o Card_csv.o ConcreteStates_sql.o Deck_csv.o GameManager_sql.o Player_csv.o DatabaseManager_sql.o sqlite3.o -o %BIN_SQL% -lpthread -lws2_32 -static
+if !ERRORLEVEL! NEQ 0 goto :FAIL
+echo SUCCESS: %BIN_SQL% created.
+
+:: 4. Cleanup
+echo [4/4] Cleaning up temporary files...
+del *_csv.o *_sql.o 
+:: We keep sqlite3.o to speed up next build
+echo OK.
 
 echo.
-echo [BUỚC 1] Biên dịch SQLite (Đây là bước nặng nhất)...
-g++ -x c -c sqlite3.c -o sqlite3.o
-if %ERRORLEVEL% NEQ 0 (echo LOI O BUOC 1 && pause && exit)
-echo SUCCESS: Da tao xong sqlite3.o
+echo ============================================================
+echo   BUILD COMPLETE!
+echo   - %BIN_CSV% (CSV Only)
+echo   - %BIN_SQL% (SQLite + CSV)
+echo ============================================================
+echo.
+echo [FINISH] All binaries are ready.
 pause
+exit /b 0
 
+:FAIL
 echo.
-echo [BƯỚC 2] Biên dịch Logic Game...
-g++ -std=c++17 -DUSE_SQLITE -c main.cpp -I include -I . -o main.o
-g++ -std=c++17 -DUSE_SQLITE -c src/Card.cpp -I include -I . -o Card.o
-g++ -std=c++17 -DUSE_SQLITE -c src/ConcreteStates.cpp -I include -I . -o ConcreteStates.o
-g++ -std=c++17 -DUSE_SQLITE -c src/Deck.cpp -I include -I . -o Deck.o
-g++ -std=c++17 -DUSE_SQLITE -c src/GameManager.cpp -I include -I . -o GameManager.o
-g++ -std=c++17 -DUSE_SQLITE -c src/Player.cpp -I include -I . -o Player.o
-g++ -std=c++17 -DUSE_SQLITE -c src/DatabaseManager.cpp -I include -I . -o DatabaseManager.o
-if %ERRORLEVEL% NEQ 0 (echo LOI O BUOC 2 && pause && exit)
-echo SUCCESS: Da tao xong cac file .o cua Game
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+echo   BUILD FAILED! Please check the errors above.
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 pause
-
-echo.
-echo [BƯỚC 3] Liên kết (Linking)...
-g++ main.o Card.o ConcreteStates.o Deck.o GameManager.o Player.o DatabaseManager.o sqlite3.o -o game_sql.exe -lpthread -lws2_32 -static
-if %ERRORLEVEL% NEQ 0 (echo LOI O BUOC 3 && pause && exit)
-
-echo.
-echo CHÚC MỪNG! game_sql.exe đã được tạo thành công.
-del *.o
-pause
+exit /b 1
