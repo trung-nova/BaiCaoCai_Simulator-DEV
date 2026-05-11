@@ -1,13 +1,4 @@
 #include "include/GameManager.h"
-
-#define RESET   "\033[0m"
-#define RED     "\033[31m"
-#define GREEN   "\033[32m"
-#define YELLOW  "\033[33m"
-#define BLUE    "\033[34m"
-#define MAGENTA "\033[35m"
-#define CYAN    "\033[36m"
-#define BOLD    "\033[1m"
 #include <algorithm>
 #include <chrono>
 #include <iomanip>
@@ -18,6 +9,15 @@
 #include <string>
 #include <vector>
 #include <memory>
+
+#define RESET   "\033[0m"
+#define RED     "\033[31m"
+#define GREEN   "\033[32m"
+#define YELLOW  "\033[33m"
+#define BLUE    "\033[34m"
+#define MAGENTA "\033[35m"
+#define CYAN    "\033[36m"
+#define BOLD    "\033[1m"
 
 template <typename T>
 T safeInput(const std::string &prompt, T minVal, T maxVal) {
@@ -52,7 +52,6 @@ int main() {
       std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
       continue;
     }
-
     if (choice == 0) break;
 
     GameManager manager;
@@ -77,128 +76,128 @@ int main() {
             std::cout << "[System] Using manual seed: " << seed << "\n";
         }
     }
+    manager.simulationSeed = (long long)seed;
     std::mt19937 gen(seed);
-    manager.simulationSeed = (long long)seed; // Store the actual seed used
 
     if (choice == 1) {
       std::cout << "\nStandard Simulation Sub-modes:\n";
-      std::cout << "1. Persistent Mode (Accumulate balance across multiple runs)\n";
-      std::cout << "2. Reset Mode (Reset balances to 10,000 before each run)\n";
+      std::cout << "1. Persistent Mode | 2. Reset Mode\n";
       int subMode = safeInput<int>("Selection: ", 1, 2);
 
       int numPlayers = safeInput<int>("Enter number of players (2-17): ", 2, 17);
-      float minSkill = safeInput<float>("Enter minimum skill (0-1): ", 0.0f, 1.0f);
-      float maxSkill = safeInput<float>("Enter maximum skill (0-1): ", minSkill, 1.0f);
-      float concentration = safeInput<float>("Enter skill concentration (1-100): ", 1.0f, 100.0f);
-      float stdDev = 1.0f / concentration;
-      float sharkPct = safeInput<float>("Enter % Shark: ", 0.0f, 100.0f);
-      float maniacPct = safeInput<float>("Enter % Maniac: ", 0.0f, 100.0f - sharkPct);
-      float nitPct = 100.0f - sharkPct - maniacPct;
+      float minS = safeInput<float>("Min Skill (0-1): ", 0.0f, 1.0f);
+      float maxS = safeInput<float>("Max Skill (0-1): ", minS, 1.0f);
+      float conc = safeInput<float>("Skill Concentration (1-100): ", 1.0f, 100.0f);
+      float stdDev = 1.0f / conc;
+      float sPct = safeInput<float>("% Shark: ", 0.0f, 100.0f);
+      float mPct = safeInput<float>("% Maniac: ", 0.0f, 100.0f - sPct);
+      float nPct = 100.0f - sPct - mPct;
 
       std::vector<std::shared_ptr<Player>> players;
-      std::discrete_distribution<int> archetypeDist({sharkPct, maniacPct, nitPct});
-      
+      std::discrete_distribution<int> archDist({sPct, mPct, nPct});
       manager.displayArchetypeConfigs();
 
-      std::cout << "\nEnable Research Reports (Data Export)? (y/n): ";
-      char exportToggle;
-      std::cin >> exportToggle;
+      std::cout << "\nEnable Research Reports? (y/n): ";
+      char exportToggle; std::cin >> exportToggle;
       manager.autoExport = (exportToggle == 'y' || exportToggle == 'Y');
 
       for (int i = 0; i < numPlayers; ++i) {
-        int archChoice = archetypeDist(gen);
-        Archetype arch;
-        float meanS = 0.5f, meanC = 0.0f;
-        if (archChoice == 0) { arch = Archetype::SHARK; meanS = maxSkill; meanC = 0.2f; }
-        else if (archChoice == 1) { arch = Archetype::MANIAC; meanS = minSkill; meanC = 0.8f; }
-        else { arch = Archetype::NIT; meanS = (minSkill + maxSkill) / 2.0f; meanC = -0.5f; }
+        int aChoice = archDist(gen);
+        Archetype arch; float mS = 0.5f, mC = 0.0f;
+        if (aChoice == 0) { arch = Archetype::SHARK; mS = maxS; mC = 0.2f; }
+        else if (aChoice == 1) { arch = Archetype::MANIAC; mS = minS; mC = 0.8f; }
+        else { arch = Archetype::NIT; mS = (minS + maxS) / 2.0f; mC = -0.5f; }
 
-        std::normal_distribution<float> skillDist(meanS, stdDev);
-        std::normal_distribution<float> confDist(meanC, stdDev);
-        float skill = std::max(0.0f, std::min(1.0f, skillDist(gen)));
-        float conf = std::max(-1.0f, std::min(1.0f, confDist(gen)));
+        std::normal_distribution<float> sD(mS, stdDev), cD(mC, stdDev);
+        float skill = std::max(0.0f, std::min(1.0f, sD(gen)));
+        float conf = std::max(-1.0f, std::min(1.0f, cD(gen)));
 
         auto& cfg = manager.archetypeConfigs[arch];
         players.push_back(std::make_shared<AIPlayer>("AI_" + std::to_string(i + 1), 10000,
-                                       skill, conf, cfg.greedThreshold, 
-                                       (arch == Archetype::NORMAL ? 1.0f : cfg.k), 
-                                       (arch == Archetype::NORMAL ? 2.0f : cfg.gamma), arch, gen()));
+                                       skill, conf, cfg.greedThreshold, cfg.k, cfg.gamma, arch, gen()));
       }
 
       manager.setPlayers(players);
-      bool simulationActive = true;
-      while (simulationActive) {
-        if (subMode == 2) {
-          for (auto& p : manager.players) p->resetStats();
-          manager.tiltLogs.clear();
-          manager.roundCount = 0;
-        }
-
-        int numRounds = safeInput<int>("Enter number of rounds to run: ", 1, 33554332);
-        for (auto& p : manager.players) p->getBankrollHistory().reserve(p->getBankrollHistory().size() + numRounds + 1);
-
-        std::cout << "\n" << BOLD << CYAN << "--- Player Configuration ---" << RESET << "\n";
-        for (const auto& p : manager.players) {
-          std::cout << std::left << std::setw(10) << p->getName() << std::setw(10)
-                    << (p->isHumanPlayer() ? "Human" : "AI") << std::fixed << std::setprecision(2)
-                    << std::setw(10) << p->getSkillLevel() << std::setw(12) << p->getBalance() << "\n";
-        }
+      bool simActive = true;
+      while (simActive) {
+        if (subMode == 2) { for (auto& p : manager.players) p->resetStats(); manager.tiltLogs.clear(); manager.roundCount = 0; }
+        int numR = safeInput<int>("Number of rounds: ", 1, 10000000);
+        for (auto& p : manager.players) p->getBankrollHistory().reserve(p->getBankrollHistory().size() + numR + 1);
 
         std::ostringstream oss;
-        oss << "Used Seed: " << manager.simulationSeed << "\n"
-            << "Mode: Standard Simulation (" << (subMode == 1 ? "Persistent" : "Reset") << ")\n"
-            << "Players: " << players.size() << "\n"
-            << "Rounds: " << numRounds;
+        oss << "Seed: " << manager.simulationSeed << "\nMode: Standard (" << (subMode == 1 ? "Persistent" : "Reset") << ")\nPlayers: " << players.size() << "\nRounds: " << numR;
         manager.simulationParams = oss.str();
 
         if (manager.autoExport) manager.startStreaming();
 #ifdef USE_SQLITE
         if (manager.autoExport) manager.db.beginTransaction();
 #endif
-        auto startTime = std::chrono::high_resolution_clock::now();
-        for (int i = 0; i < numRounds; ++i) {
-          if (subMode == 2) {
-            for (auto& p : manager.players) { p->setBalance(10000); p->setEliminated(false); }
-          }
+        auto tStart = std::chrono::high_resolution_clock::now();
+        for (int i = 0; i < numR; ++i) {
+          if (subMode == 2) { for (auto& p : manager.players) { p->setBalance(10000); p->setEliminated(false); } }
           int activeCount = 0;
           for (auto& p : manager.players) if (!p->getIsEliminated()) activeCount++;
           if (activeCount <= 1) break;
-          if (i == numRounds - 1) manager.isFinalRound = true;
+          if (i == numR - 1) manager.isFinalRound = true;
           manager.playRound();
 #ifdef USE_SQLITE
           if ((i + 1) % 1000 == 0) { manager.db.endTransaction(); manager.db.beginTransaction(); }
 #endif
-          // Real-time progress counter
-          if ((i + 1) % 100 == 0 || i == numRounds - 1) {
-              float progress = (float)(i + 1) / numRounds * 100.0f;
-              std::cout << "\rProgress: " << (i + 1) << " / " << numRounds << " ("
-                        << std::fixed << std::setprecision(1) << progress << "%)" << std::flush;
+          if ((i + 1) % 100 == 0 || i == numR - 1) {
+              float progress = (float)(i + 1) / numR * 100.0f;
+              std::cout << "\rProgress: " << (i + 1) << " / " << numR << " (" << std::fixed << std::setprecision(1) << progress << "%)" << std::flush;
           }
         }
 #ifdef USE_SQLITE
         if (manager.autoExport) manager.db.endTransaction();
 #endif
         if (manager.autoExport) manager.stopStreaming();
-        auto endTime = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> elapsed = endTime - startTime;
+        auto tEnd = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed = tEnd - tStart;
         std::cout << "\nSimulation complete in " << elapsed.count() << "s.\n";
         manager.printSummary();
 
         std::cout << "\n1. Run more rounds | 2. Return to Main Menu\n";
-        int postChoice = safeInput<int>("Selection: ", 1, 2);
-        if (postChoice == 2) simulationActive = false;
+        int postC = safeInput<int>("Selection: ", 1, 2);
+        if (postC == 2) simActive = false;
       }
-    } else if (choice == 2) {
-        // Interactive choice simplified logic
-        std::cout << "Interactive Mode is active. (Simplified for testing)\n";
-        std::cout << "Press Enter..."; std::cin.ignore(); std::cin.get();
-    } else if (choice == 4) {
-        // Log choice simplified logic
-        std::cout << "Log Mode is active. (Simplified for testing)\n";
-        std::cout << "Press Enter..."; std::cin.ignore(); std::cin.get();
+    } else if (choice == 2 || choice == 4) {
+      bool isLog = (choice == 4);
+      int nP = safeInput<int>("Number of players (2-17): ", 2, 17);
+      std::vector<std::shared_ptr<Player>> players;
+      if (!isLog) {
+          std::string hName; std::cout << "Enter your name: "; std::cin >> hName;
+          players.push_back(std::make_shared<HumanPlayer>(hName, 10000, -1.0f, 0.0f, 0.0f));
+      }
+
+      for (int i = players.size(); i < nP; ++i) {
+          Archetype arch = (i % 3 == 0) ? Archetype::SHARK : (i % 3 == 1 ? Archetype::MANIAC : Archetype::NIT);
+          auto& cfg = manager.archetypeConfigs[arch];
+          players.push_back(std::make_shared<AIPlayer>("AI_" + std::to_string(i + 1), 10000, 0.5f, 0.0f, cfg.greedThreshold, cfg.k, cfg.gamma, arch, gen()));
+      }
+      manager.setPlayers(players);
+      manager.logMode = true;
+      int numR = isLog ? 1 : safeInput<int>("Number of rounds: ", 1, 100);
+      for (int i = 0; i < numR; ++i) {
+          if (i == numR - 1) manager.isFinalRound = true;
+          manager.playRound();
+      }
+      manager.printSummary();
+      std::cout << "Press Enter to return to menu..."; std::cin.ignore(1000, '\n'); std::cin.get();
     } else if (choice == 3) {
-        std::cout << "Random Mode is active. (Simplified for testing)\n";
-        std::cout << "Press Enter..."; std::cin.ignore(); std::cin.get();
+      int batches = safeInput<int>("Number of random batches to run: ", 1, 1000);
+      std::cout << GREEN << "Running Random Mode (Continuous Research)..." << RESET << "\n";
+      for (int b = 0; b < batches; ++b) {
+          int nP = std::uniform_int_distribution<int>(2, 17)(gen);
+          std::vector<std::shared_ptr<Player>> players;
+          for (int i = 0; i < nP; ++i) {
+              players.push_back(std::make_shared<AIPlayer>("AI_" + std::to_string(i + 1), 10000, 0.5f, 0.0f, 0.5f, 1.0f, 2.0f, Archetype::NORMAL, gen()));
+          }
+          manager.setPlayers(players);
+          manager.isFinalRound = true; manager.playRound();
+          if ((b + 1) % 10 == 0) std::cout << "\rBatch Progress: " << (b + 1) << " / " << batches << std::flush;
+      }
+      std::cout << "\nRandom Mode complete. Press Enter..."; std::cin.ignore(1000, '\n'); std::cin.get();
     }
   }
   return 0;
