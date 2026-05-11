@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <map>
+#include <memory>
 #include "Player.h"
 #include "Deck.h"
 #include "GameState.h"
@@ -30,9 +31,9 @@ struct ArchetypeConfig {
 
 class GameManager {
 public:
-    std::vector<Player*> players;
+    std::vector<std::shared_ptr<Player>> players;
     int currentPot;
-    GameState* currentState;
+    std::unique_ptr<GameState> currentState;
     Deck deck;
     int currentDealerIndex;
     int roundCount = 0;
@@ -48,8 +49,8 @@ public:
 
     GameManager();
     ~GameManager();
-    void setPlayers(const std::vector<Player*>& p);
-    void changeState(GameState* newState);
+    void setPlayers(const std::vector<std::shared_ptr<Player>>& p);
+    void changeState(std::unique_ptr<GameState> newState);
     void playRound();
     void startStreaming();
     void stopStreaming();
@@ -64,7 +65,9 @@ public:
     bool autoExport = false;
     bool isFinalRound = false;
     std::string simulationParams;
+    long long simulationSeed = -1;
     std::vector<int> initialBalances;
+    void initRNG(); // Initialize RNG with simulationSeed if >= 0
 
     std::map<Archetype, ArchetypeConfig> archetypeConfigs;
 

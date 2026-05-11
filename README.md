@@ -1,53 +1,39 @@
-# Bài Cào Cái Simulator v2.0 - Research & Analysis Guide
+# Bài Cào Cái Simulator v3.0 - Research & Analysis Guide
 
-Chào ông bạn! Repo này chứa mã nguồn và dữ liệu mô phỏng cho trò chơi Bài Cào Cái (phiên bản có luật đổi bài). Hệ thống sử dụng mô hình Monte Carlo để giả lập hàng triệu ván đấu nhằm phân tích tâm lý hành vi của AI.
+Chào ông bạn! Hệ thống đã được nâng cấp lên phiên bản **v3.0 (Academic Edition)** với kiến trúc lập trình hướng đối tượng (OOP) chuẩn mực, sẵn sàng cho việc bảo vệ đồ án và phân tích nghiên cứu chuyên sâu.
 
-## 1. Cấu trúc Dữ liệu (Data Structure)
+## 1. Tính năng mới (v3.0)
+*   **Encapsulation (Bao đóng)**: Bảo vệ dữ liệu người chơi tuyệt đối thông qua Access Modifiers (`protected`).
+*   **Smart Memory Management**: Sử dụng `std::shared_ptr` và `std::unique_ptr` để quản lý bộ nhớ, loại bỏ hoàn toàn lỗi Memory Leak.
+*   **Deterministic Simulation**: Hỗ trợ nạp `seed` từ `config.ini` hoặc nhập tay để tái lập chính xác kết quả mô phỏng (Reproducibility).
+*   **Unit Testing**: Tích hợp bộ kiểm thử `tests/test_rules.cpp` để xác minh luật chơi.
+*   **Robust Build System**: Script `build_all.bat` tự động đồng bộ cả 2 phiên bản CSV và SQLite với khả năng báo lỗi thông minh.
 
-Dữ liệu được xuất ra dưới hai định dạng chính: **SQLite (.db)** để truy vấn sâu và **CSV** để nạp nhanh vào Excel/Pandas/PowerBI.
+## 2. Cấu trúc Dữ liệu (Data Structure)
+Dữ liệu được xuất ra thư mục `data/` dưới hai định dạng chính:
 
-### A. SQLite Database (`*_simulation.db`)
+### A. SQLite Database (`simulation_results.db`)
 Cấu trúc gồm 2 bảng chính:
+*   **`rounds`**: Tổng quan ván đấu (ID, Dealer, Pot, Winners, Scores Summary).
+*   **`swaps`**: Chi tiết quyết định AI (RoundID, Player, Turn, Satisfaction, Desire, Probability, Result).
 
-#### Bảng `rounds` (Tổng quan ván đấu)
-- `id`: Số thứ tự ván đấu.
-- `dealer`: Tên người chơi đang làm Cái.
-- `pot`: Tổng tiền cược trên bàn.
-- `winners`: Số lượng người thắng trong ván đó.
-- `scores`: Chuỗi tóm tắt điểm số của tất cả người chơi.
+### B. Các file CSV & Reports
+*   `*_bankroll_history.csv`: Theo dõi biến động tài sản của từng người chơi.
+*   `*_summary.txt`: Báo cáo nghiên cứu tổng quát kèm tham số mô phỏng (bao gồm cả Seed).
 
-#### Bảng `swaps` (Chi tiết quyết định của AI)
-Đây là bảng quan trọng nhất để phân tích hành vi:
-- `round_id`: Link tới bảng `rounds`.
-- `player`: Tên AI thực hiện quyết định.
-- `turn`: Lượt đổi bài (1, 2 hoặc 3).
-- `satisfaction`: Chỉ số hài lòng (0.0 - 1.0). Càng thấp AI càng muốn đổi bài.
-- `desire`: Chỉ số thèm muốn đổi bài (tăng dần theo thời gian/cảm xúc).
-- `probability`: Xác suất cuối cùng AI quyết định đổi bài (sau khi kết hợp Skill và Tâm lý).
-- `swapped`: `1` nếu AI đã thực hiện đổi, `0` nếu giữ nguyên bài.
+## 3. Các nhóm AI (Archetypes)
+Được cấu hình trong `config.ini`:
+1.  **SHARK**: Kỹ năng cao, lý trí, tối ưu hóa lợi nhuận dài hạn. (Tập trung quanh `maxSkill`).
+2.  **MANIAC**: Rất hung hãn, dễ bị ảnh hưởng bởi tâm lý "TILT". (Tập trung quanh `minSkill`).
+3.  **NIT**: Cực kỳ thận trọng, ưu tiên bảo toàn vốn. (Tập trung quanh mức trung bình).
 
-### B. Các file CSV
-- `*_bankroll_history.csv`: Biến động số dư tài khoản của từng người chơi qua từng ván. Rất tốt để vẽ biểu đồ đường (Line Chart) thể hiện ROI.
-- `*_swap_decisions.csv`: Dữ liệu thô tương tự bảng `swaps` nhưng ở dạng văn bản.
-- `*_simulation_summary.txt`: Báo cáo tổng kết hiệu suất (Win Rate, Net Profit) của từng người chơi/Archetype.
+> [!NOTE]
+> Hệ thống sử dụng mô hình **Gaussian Mixture Model (GMM)** để tạo ra một quần thể người chơi có tính phân hóa xã hội cao, thay vì chỉ là một dải kỹ năng ngẫu nhiên đơn thuần.
+
+## 4. Hướng dẫn Build & Chạy
+1.  Đảm bảo đã cài đặt `g++` (MinGW) và `sqlite3`.
+2.  Chạy file `build_all.bat` để biên dịch.
+3.  Chạy `game.exe` (CSV) hoặc `game_sql.exe` (SQLite + CSV).
 
 ---
-
-## 2. Các nhóm AI (Archetypes)
-
-Khi phân tích, ông cần chú ý đến 3 loại "cá tính" AI được định nghĩa trong `config.ini`:
-
-1.  **SHARK (Cá mập):** Kỹ năng cao, lý trí, ít khi đổi bài bừa bãi.
-2.  **MANIAC (Kẻ điên):** Kỹ năng thấp, rất hay đổi bài, dễ rơi vào trạng thái "TILT" (cay cú).
-3.  **NIT (Kẻ nhát):** Rất thận trọng, chỉ giữ những bộ bài cực kỳ an toàn.
-
----
-
-## 3. Gợi ý hướng phân tích (Research Ideas)
-
-Nếu chưa biết bắt đầu từ đâu, ông có thể thử:
-- **Biểu đồ ROI:** Vẽ `balance` theo thời gian của Shark vs Maniac để thấy sự khác biệt về đường cong lợi nhuận.
-- **Heatmap:** Tương quan giữa `satisfaction` và xác suất thắng ván đó.
-- **Phân tích TILT:** Xem xác suất đổi bài thay đổi như thế nào sau khi một AI thua 5 ván liên tiếp (dựa trên log trong `_tilt_events.txt`).
-
-Chúc ông bạn phân tích vui vẻ! Có gì thắc mắc cứ hú tôi.
+*Mọi logic về thuật toán AI Sigmoid và phân bổ xác suất được giữ nguyên 100% so với bản v2.0 để đảm bảo tính nhất quán của dữ liệu nghiên cứu.*

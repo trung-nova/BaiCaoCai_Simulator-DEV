@@ -5,29 +5,30 @@
 #include <algorithm>
 #include <random>
 #include <chrono>
+#include <memory>
 
 static std::mt19937 state_rng(std::chrono::system_clock::now().time_since_epoch().count());
 
 void BettingState::update(GameManager* manager) {
     if (manager->logMode) {
         GameManager::clearScreen();
-        std::cout << BOLD << YELLOW << "========================================" << RESET << "\n";
-        std::cout << BOLD << YELLOW << "            NEW ROUND STARTING          " << RESET << "\n";
-        std::cout << BOLD << YELLOW << "========================================" << RESET << "\n";
+        std::cout << "\033[1m\033[33m========================================\033[0m\n";
+        std::cout << "\033[1m\033[33m            NEW ROUND STARTING          \033[0m\n";
+        std::cout << "\033[1m\033[33m========================================\033[0m\n";
     }
 
     int ante = 1; 
-    for (auto* player : manager->players) {
+    for (auto& player : manager->players) {
         player->clearHand();
         player->successfulSwapsCount = 0;
-        if (player->isEliminated) continue;
+        if (player->getIsEliminated()) continue;
 
         if (!player->isDealer) {
-            if (player->balance < ante) {
-                player->isEliminated = true;
+            if (player->getBalance() < ante) {
+                player->setEliminated(true);
                 continue;
             }
-            player->balance -= ante;
+            player->setBalance(player->getBalance() - ante);
             manager->currentPot += ante;
         }
     }
@@ -37,11 +38,11 @@ void BettingState::update(GameManager* manager) {
 
 void DealingState::update(GameManager* manager) {
     if (manager->logMode) {
-        std::cout << CYAN << "[System] Dealing cards..." << RESET << "\n";
+        std::cout << "\033[36m[System] Dealing cards...\033[0m\n";
     }
     for (int i = 0; i < 3; ++i) {
-        for (auto* player : manager->players) {
-            if (player->isEliminated) continue;
+        for (auto& player : manager->players) {
+            if (player->getIsEliminated()) continue;
             player->receiveCard(manager->deck.drawCard());
         }
     }
@@ -50,47 +51,42 @@ void DealingState::update(GameManager* manager) {
 
 void TradingState::update(GameManager* manager) {
     if (manager->logMode) {
-        std::cout << BOLD << MAGENTA << "\n--- TRADING PHASE (3 Turns) ---" << RESET << "\n";
+        std::cout << "\033[1m\033[35m\n--- TRADING PHASE (3 Turns) ---\033[0m\n";
     }
 
     bool hasHuman = false;
-    for (auto* p : manager->players) if (p->isHuman) { hasHuman = true; break; }
+    for (auto& p : manager->players) if (p->isHumanPlayer()) { hasHuman = true; break; }
 
     for (int swapTurn = 1; swapTurn <= 3; ++swapTurn) {
         if (manager->logMode) {
-            std::cout << CYAN << "\n>> Swap Turn " << swapTurn << " starting..." << RESET << "\n";
+            std::cout << "\033[36m\n>> Swap Turn " << swapTurn << " starting...\033[0m\n";
         }
 
         std::vector<Player*> willingToTrade;
-        
-        for (auto* player : manager->players) {
-            if (player->isEliminated) continue;
-            
-            // Update desire based on current dissatisfaction
+        for (auto& player : manager->players) {
+            if (player->getIsEliminated()) continue;
             player->updateTradeDesire(swapTurn);
             
-            bool isHuman = player->isHuman;
-
+            bool isHuman = player->isHumanPlayer();
             if (manager->logMode) {
-                // Show hands in log mode to track evolution across turns
                 if (isHuman || !hasHuman) {
-                    std::cout << (player->isDealer ? YELLOW : WHITE) << "Player: " << std::left << std::setw(5) << player->name << RESET 
+                    std::cout << (player->isDealer ? "\033[33m" : "\033[37m") << "Player: " << std::left << std::setw(5) << player->getName() << "\033[0m" 
                               << " | Hand: ";
                     for (const auto& c : player->hand) std::cout << c.toString() << " ";
-                    std::cout << "| Score: " << BOLD << player->getScore() << RESET << "\n";
+                    std::cout << "| Score: \033[1m" << player->getScore() << "\033[0m\n";
                 }
             }
 
-            int roundID = manager->roundCount; // Use manager->roundCount
+            int roundID = manager->roundCount;
             bool showLogic = manager->logMode && !hasHuman;
             
             SwapRecord sr;
             if (player->wantsToTrade(roundID, swapTurn, manager->logMode, showLogic, &sr)) {
                 if (manager->logMode && !isHuman && hasHuman) {
-                    std::cout << WHITE << "Player: " << std::left << std::setw(5) << player->name << RESET 
+                    std::cout << "\033[37mPlayer: " << std::left << std::setw(5) << player->getName() << "\033[0m" 
                               << " | Hand: [Hidden] (Wants to trade)\n";
                 }
-                willingToTrade.push_back(player);
+                willingToTrade.push_back(player.get());
             }
             
             if (manager->isStreaming) {
@@ -108,87 +104,69 @@ void TradingState::update(GameManager* manager) {
         if (willingToTrade.size() < 2) {
             if (manager->logMode) {
                 if (willingToTrade.size() == 1) {
-                    std::cout << CYAN << "[System] Only " << willingToTrade[0]->name << " wants to trade. Waiting for others..." << RESET << "\n";
+                    std::cout << "\033[36m[System] Only " << willingToTrade[0]->getName() << " wants to trade. Waiting for others...\033[0m\n";
                 } else {
-                    std::cout << CYAN << "[System] No one wants to trade this turn." << RESET << "\n";
+                    std::cout << "\033[36m[System] No one wants to trade this turn.\033[0m\n";
                 }
             }
-            continue; // Move to next turn, desire will increase
+            continue;
         } else {
-            std::vector<bool> paired(manager->players.size(), false);
             std::shuffle(willingToTrade.begin(), willingToTrade.end(), state_rng);
+            std::vector<bool> paired(willingToTrade.size(), false);
 
-            for (auto* pA : willingToTrade) {
-                // Find index of pA in manager->players
-                int idxA = -1;
-                for(int i=0; i<manager->players.size(); ++i) if(manager->players[i] == pA) { idxA = i; break; }
-                
-                if (idxA == -1 || paired[idxA]) continue;
+            for (size_t i = 0; i < willingToTrade.size(); ++i) {
+                if (paired[i]) continue;
+                Player* pA = willingToTrade[i];
                 
                 std::vector<Player*> candidates;
-                for (auto* pB : willingToTrade) {
-                    if (pB == pA) continue;
-                    int idxB = -1;
-                    for(int i=0; i<manager->players.size(); ++i) if(manager->players[i] == pB) { idxB = i; break; }
-                    if (idxB != -1 && !paired[idxB]) {
-                        candidates.push_back(pB);
-                    }
+                for (size_t j = i + 1; j < willingToTrade.size(); ++j) {
+                    if (!paired[j]) candidates.push_back(willingToTrade[j]);
                 }
                 
                 if (candidates.empty()) continue;
-                
                 Player* chosenPartner = pA->pickSwapPartner(candidates);
                 if (chosenPartner) {
-                    int idxB = -1;
-                    for(int i=0; i<manager->players.size(); ++i) if(manager->players[i] == chosenPartner) { idxB = i; break; }
-
                     if (manager->logMode && hasHuman) {
-                         std::cout << GREEN << ">> ACTION: " << pA->name << " is trading cards with " << chosenPartner->name << RESET << "\n";
+                         std::cout << "\033[32m>> ACTION: " << pA->getName() << " is trading cards with " << chosenPartner->getName() << "\033[0m\n";
                     }
 
                     Card* cardA = pA->getCardToTrade();
                     Card* cardB = chosenPartner->getCardToTrade();
                     
                     if (manager->logMode && !hasHuman) {
-                         std::cout << GREEN << ">> ACTION: " << pA->name << " swaps " << cardA->toString() 
-                                   << " with " << chosenPartner->name << "'s " << cardB->toString() << RESET << "\n";
+                         std::cout << "\033[32m>> ACTION: " << pA->getName() << " swaps " << cardA->toString() 
+                                   << " with " << chosenPartner->getName() << "'s " << cardB->toString() << "\033[0m\n";
                     }
                     
                     Card copyA = *cardA;
                     Card copyB = *cardB;
-                    
                     pA->swapCard(cardA, &copyB);
                     chosenPartner->swapCard(cardB, &copyA);
                     pA->successfulSwapsCount++;
                     chosenPartner->successfulSwapsCount++;
                     
-                    paired[idxA] = true;
-                    if (idxB != -1) paired[idxB] = true;
+                    paired[i] = true;
+                    for(size_t j=0; j<willingToTrade.size(); ++j) if(willingToTrade[j] == chosenPartner) { paired[j] = true; break; }
                 }
             }
         }
     }
-    
     manager->changeState(StateFactory::getEvalState());
 }
 
 void EvalState::update(GameManager* manager) {
     Player* dealer = nullptr;
-    for (auto* p : manager->players) {
-        if (p->isDealer) {
-            dealer = p;
-            break;
-        }
+    for (auto& p : manager->players) {
+        if (p->isDealer) { dealer = p.get(); break; }
     }
 
     int dealerScore = dealer->getScore();
     std::vector<Player*> winners;
-    
     bool captureHands = manager->logMode || manager->isFinalRound;
     
     if (captureHands) {
-        for (auto* p : manager->players) {
-            if (p->isEliminated) continue;
+        for (auto& p : manager->players) {
+            if (p->getIsEliminated()) continue;
             std::string handStr = "";
             std::string handStrPlain = "";
             for (const auto& c : p->hand) {
@@ -200,151 +178,91 @@ void EvalState::update(GameManager* manager) {
             p->lastScore = p->getScore();
 
             if (manager->logMode) {
-                std::cout << (p->isDealer ? YELLOW : WHITE) << (p->isDealer ? "Dealer " : "Player ") 
-                          << std::left << std::setw(5) << p->name << " Hand: " << p->lastHand;
-                std::cout << " (Score: " << p->lastScore << ")" << RESET << "\n";
+                std::cout << (p->isDealer ? "\033[33m" : "\033[37m") << (p->isDealer ? "Dealer " : "Player ") 
+                          << std::left << std::setw(5) << p->getName() << " Hand: " << p->lastHand;
+                std::cout << " (Score: " << p->lastScore << ")\033[0m\n";
             }
         }
     }
 
     std::string scoresSummary = "";
-    if (manager->isStreaming) {
-        scoresSummary = dealer->name + ":" + std::to_string(dealerScore);
-        for (auto* p : manager->players) {
-            if (!p->isDealer && !p->isEliminated) {
-                int ps = p->getScore();
-                scoresSummary += " " + p->name + ":" + std::to_string(ps);
-                if (manager->logMode) {
-                    std::cout << "Player " << std::left << std::setw(5) << p->name << " score: " << ps;
-                    if (ps > dealerScore) {
-                        std::cout << BOLD << GREEN << " (WINS)" << RESET;
-                    } else {
-                        std::cout << RED << " (LOSES)" << RESET;
-                    }
-                    std::cout << "\n";
-                }
-                if (ps > dealerScore) {
-                    winners.push_back(p);
-                    p->wins++;
-                    p->consecutiveLosses = 0;
-                } else {
-                    p->consecutiveLosses++;
-                }
+    scoresSummary = dealer->getName() + ":" + std::to_string(dealerScore);
+    for (auto& p : manager->players) {
+        if (!p->isDealer && !p->getIsEliminated()) {
+            int ps = p->getScore();
+            scoresSummary += " " + p->getName() + ":" + std::to_string(ps);
+            if (manager->logMode) {
+                std::cout << "Player " << std::left << std::setw(5) << p->getName() << " score: " << ps;
+                if (ps > dealerScore) std::cout << "\033[1m\033[32m (WINS)\033[0m";
+                else std::cout << "\033[31m (LOSES)\033[0m";
+                std::cout << "\n";
             }
-        }
-    } else {
-        for (auto* p : manager->players) {
-            if (!p->isDealer && !p->isEliminated) {
-                int ps = p->getScore();
-                if (ps > dealerScore) {
-                    winners.push_back(p);
-                    p->wins++;
-                    p->consecutiveLosses = 0;
-                } else {
-                    p->consecutiveLosses++;
-                }
-            }
+            if (ps > dealerScore) { winners.push_back(p.get()); p->wins++; p->consecutiveLosses = 0; }
+            else { p->consecutiveLosses++; }
         }
     }
 
     int roundNum = manager->roundCount;
     if (manager->isStreaming) {
 #ifndef USE_SQLITE
-        manager->streamRound << roundNum << "," << dealer->name << "," << manager->currentPot << "," 
+        manager->streamRound << roundNum << "," << dealer->getName() << "," << manager->currentPot << "," 
                              << (int)winners.size() << "," << "\"" << scoresSummary << "\"\n";
-        
         manager->streamHistory << roundNum;
-        for (auto* p : manager->players) manager->streamHistory << "," << p->balance;
+        for (auto& p : manager->players) manager->streamHistory << "," << p->getBalance();
         manager->streamHistory << "\n";
-        
-        // Auto-flush for data integrity
-        manager->streamRound.flush();
-        manager->streamHistory.flush();
-        manager->streamSwap.flush();
+        manager->streamRound.flush(); manager->streamHistory.flush(); manager->streamSwap.flush();
 #endif
 #ifdef USE_SQLITE
-        manager->db.insertRound(roundNum, dealer->name, manager->currentPot, (int)winners.size(), scoresSummary);
+        manager->db.insertRound(roundNum, dealer->getName(), manager->currentPot, (int)winners.size(), scoresSummary);
 #endif
     }
 
-    int ante = 1; // Assuming constant ante for now
-    int totalLosers = 0;
-    for (auto* p : manager->players) {
-        if (!p->isDealer && !p->isEliminated) {
+    int ante = 1;
+    for (auto& p : manager->players) {
+        if (!p->isDealer && !p->getIsEliminated()) {
             bool isWinner = false;
-            for (auto* w : winners) if (w == p) { isWinner = true; break; }
+            for (auto* w : winners) if (w == p.get()) { isWinner = true; break; }
             
             if (isWinner) {
-                // Winner gets their ante back + 1 from dealer (if dealer has money)
-                int payment = std::min(ante, dealer->balance);
-                p->balance += payment + ante;
-                dealer->balance -= payment;
-                if (manager->logMode) {
-                    if (payment < ante) {
-                        std::cout << YELLOW << p->name << " wins, but Dealer is BANKRUPT! Takes remaining " << payment << " chips (Net " << (payment > 0 ? "+" : "") << (payment - ante + 1) << ")" << RESET << "\n";
-                    } else {
-                        std::cout << GREEN << p->name << " wins and takes 2 chips (Net +1)" << RESET << "\n";
-                    }
-                }
+                int payment = std::min(ante, dealer->getBalance());
+                p->setBalance(p->getBalance() + payment + ante);
+                dealer->setBalance(dealer->getBalance() - payment);
             } else {
-                // Loser already lost their ante, dealer collects it
-                dealer->balance += ante;
-                totalLosers++;
-                if (manager->logMode) std::cout << RED << p->name << " loses ante to Dealer" << RESET << "\n";
+                dealer->setBalance(dealer->getBalance() + ante);
             }
         }
     }
 
-    if (winners.empty()) {
-        dealer->wins++;
-        dealer->consecutiveLosses = 0;
-        if (manager->logMode) std::cout << BOLD << YELLOW << "Dealer wins against everyone!" << RESET << "\n";
-    } else {
-        dealer->consecutiveLosses++;
-    }
+    if (winners.empty()) { dealer->wins++; dealer->consecutiveLosses = 0; }
+    else { dealer->consecutiveLosses++; }
 
     manager->currentPot = 0;
-
-    // Eliminate bankrupt players and check Tilt
     int currentRound = manager->roundCount;
-    for (auto* p : manager->players) {
-        if (p->balance <= 0) {
-            p->isEliminated = true;
-        } else {
-            p->updateTiltStatus(manager, currentRound);
-        }
+    for (auto& p : manager->players) {
+        if (p->getBalance() <= 0) p->setEliminated(true);
+        else p->updateTiltStatus(manager, currentRound);
     }
 
-    // Rotate dealer to next ACTIVE player
     int oldDealerIndex = manager->currentDealerIndex;
     manager->players[oldDealerIndex]->isDealer = false;
-    
     int nextDealer = (oldDealerIndex + 1) % manager->players.size();
     int searchCount = 0;
-    while (manager->players[nextDealer]->isEliminated && searchCount < manager->players.size()) {
+    while (manager->players[nextDealer]->getIsEliminated() && searchCount < (int)manager->players.size()) {
         nextDealer = (nextDealer + 1) % manager->players.size();
         searchCount++;
     }
-    
     manager->currentDealerIndex = nextDealer;
     manager->players[manager->currentDealerIndex]->isDealer = true;
 
     if (manager->logMode) {
-        std::cout << "\nNew Dealer: " << BOLD << YELLOW << manager->players[manager->currentDealerIndex]->name << RESET << "\n";
+        std::cout << "\nNew Dealer: \033[1m\033[33m" << manager->players[manager->currentDealerIndex]->getName() << "\033[0m\n";
         std::cout << "Press Enter to continue...";
         std::cin.get();
     }
-
     manager->changeState(nullptr); 
 }
 
-// StateFactory Implementation
-static BettingState bettingState;
-static DealingState dealingState;
-static TradingState tradingState;
-static EvalState evalState;
-
-GameState* StateFactory::getBettingState() { return &bettingState; }
-GameState* StateFactory::getDealingState() { return &dealingState; }
-GameState* StateFactory::getTradingState() { return &tradingState; }
-GameState* StateFactory::getEvalState() { return &evalState; }
+std::unique_ptr<GameState> StateFactory::getBettingState() { return std::make_unique<BettingState>(); }
+std::unique_ptr<GameState> StateFactory::getDealingState() { return std::make_unique<DealingState>(); }
+std::unique_ptr<GameState> StateFactory::getTradingState() { return std::make_unique<TradingState>(); }
+std::unique_ptr<GameState> StateFactory::getEvalState() { return std::make_unique<EvalState>(); }

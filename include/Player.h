@@ -22,7 +22,13 @@ enum class Archetype { SHARK, MANIAC, NIT, NORMAL };
 
 
 class Player {
-public:
+    friend class GameManager;
+    friend class BettingState;
+    friend class DealingState;
+    friend class TradingState;
+    friend class EvalState;
+
+protected:
     std::string name;
     Hand hand;
     int balance;
@@ -51,10 +57,31 @@ public:
     bool isHuman;
     int cachedScore = 0;
     bool cachedBaTien = false;
-    float satisfactionTable[11]; // Pre-calculated for scores 0-10
+    float satisfactionTable[11];
 
+public:
     Player(const std::string& name, int balance, float skillLevel, float confidenceLevel, float tradeDesire, float k = 1.0f, float gamma = 2.0f, Archetype archetype = Archetype::NORMAL);
     virtual ~Player() {}
+
+    // Getters
+    std::string getName() const { return name; }
+    int getBalance() const { return balance; }
+    float getSkillLevel() const { return skillLevel; }
+    bool getIsEliminated() const { return isEliminated; }
+    Archetype getArchetype() const { return archetype; }
+    bool isHumanPlayer() const { return isHuman; }
+    std::vector<int>& getBankrollHistory() { return bankrollHistory; }
+
+    // Set
+    void setBalance(int b) { balance = b; }
+    void setEliminated(bool e) { isEliminated = e; }
+    void resetStats() { 
+        wins = 0; 
+        roundsPlayed = 0; 
+        lastHand = "---"; 
+        lastHandPlain = "---"; 
+        lastScore = 0; 
+    }
 
     int getScore() const;
     bool isBaTien() const;
@@ -79,7 +106,7 @@ private:
     std::uniform_real_distribution<float> dist;
 
 public:
-    AIPlayer(const std::string& name, int balance, float skillLevel, float confidenceLevel, float tradeDesire, float k = 1.0f, float gamma = 2.0f, Archetype archetype = Archetype::NORMAL);
+    AIPlayer(const std::string& name, int balance, float skillLevel, float confidenceLevel, float tradeDesire, float k = 1.0f, float gamma = 2.0f, Archetype archetype = Archetype::NORMAL, unsigned seed = 0);
     bool wantsToTrade(int roundID, int swapTurn, bool logMode = false, bool showLogic = false, SwapRecord* outRecord = nullptr) override;
     Card* getCardToTrade() override;
     void updateTradeDesire(int swapTurn) override;

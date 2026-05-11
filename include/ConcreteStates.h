@@ -2,6 +2,7 @@
 #define CONCRETESTATES_H
 
 #include "GameState.h"
+#include <memory>
 
 class BettingState : public GameState {
 public:
@@ -25,10 +26,10 @@ public:
 
 class StateFactory {
 public:
-    static GameState* getBettingState();
-    static GameState* getDealingState();
-    static GameState* getTradingState();
-    static GameState* getEvalState();
+    static std::unique_ptr<GameState> getBettingState();
+    static std::unique_ptr<GameState> getDealingState();
+    static std::unique_ptr<GameState> getTradingState();
+    static std::unique_ptr<GameState> getEvalState();
 };
 
 #endif // CONCRETESTATES_H
