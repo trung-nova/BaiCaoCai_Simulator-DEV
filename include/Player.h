@@ -67,8 +67,17 @@ public:
     std::string getName() const { return name; }
     int getBalance() const { return balance; }
     float getSkillLevel() const { return skillLevel; }
+    float getConfidenceLevel() const { return confidenceLevel; }
     bool getIsEliminated() const { return isEliminated; }
     Archetype getArchetype() const { return archetype; }
+    std::string getArchetypeString() const {
+        switch (archetype) {
+            case Archetype::SHARK: return "Shark";
+            case Archetype::MANIAC: return "Maniac";
+            case Archetype::NIT: return "Nit";
+            default: return "Normal";
+        }
+    }
     bool isHumanPlayer() const { return isHuman; }
     std::vector<int>& getBankrollHistory() { return bankrollHistory; }
 

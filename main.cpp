@@ -83,7 +83,22 @@ int main() {
       }
       manager.setPlayers(players); if (isInter || isLog) manager.logMode = true;
       std::cout << "\n" << BOLD << CYAN << "--- Player Configuration ---" << RESET << "\n";
-      for (const auto& pl : manager.players) std::cout << std::left << std::setw(10) << pl->getName() << std::setw(10) << (pl->isHumanPlayer() ? "Human" : "AI") << std::fixed << std::setprecision(2) << std::setw(10) << pl->getSkillLevel() << std::setw(12) << pl->getBalance() << "\n";
+      std::cout << std::left << std::setw(12) << "Player" 
+                << std::setw(10) << "Type" 
+                << std::setw(12) << "Archetype" 
+                << std::setw(10) << "Skill" 
+                << std::setw(12) << "Confidence" 
+                << "Balance" << "\n";
+      std::cout << "----------------------------------------------------------------------------\n";
+      for (const auto& pl : manager.players) {
+        std::cout << std::left << std::setw(12) << pl->getName() 
+                  << std::setw(10) << (pl->isHumanPlayer() ? "Human" : "AI") 
+                  << std::setw(12) << (pl->isHumanPlayer() ? "---" : pl->getArchetypeString())
+                  << std::fixed << std::setprecision(2)
+                  << std::setw(10) << pl->getSkillLevel() 
+                  << std::setw(12) << pl->getConfidenceLevel() 
+                  << pl->getBalance() << "\n";
+      }
       
       std::cout << "\nEnable Research Reports (Data Export)? (y/n): ";
       char exT; std::cin >> exT; manager.autoExport = (exT == 'y' || exT == 'Y');
