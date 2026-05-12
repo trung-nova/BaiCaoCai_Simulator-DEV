@@ -121,11 +121,18 @@ TradeDecision AIPlayer::wantsToTrade(int roundID, int swapTurn, bool logMode, bo
         }
     };
 
-    if (isBaTien()) { fillRecord(TradeDecision::STAY, 0.0f); return TradeDecision::STAY; }
-    if (successfulSwapsCount >= 3) { fillRecord(TradeDecision::STAY, 0.0f); return TradeDecision::STAY; }
+    if (isBaTien()) { 
+        if (showLogic) std::cout << "    [Logic] " << name << ": Ba Tiên -> STAY\n";
+        fillRecord(TradeDecision::STAY, 0.0f); return TradeDecision::STAY; 
+    }
+    if (successfulSwapsCount >= 3) { 
+        if (showLogic) std::cout << "    [Logic] " << name << ": Max Swaps -> STAY\n";
+        fillRecord(TradeDecision::STAY, 0.0f); return TradeDecision::STAY; 
+    }
     
     // Logic Dằn (STAY): Nếu bài quá đẹp (S > 0.9)
     if (S > 0.9f || score >= 9) {
+        if (showLogic) std::cout << "    [Logic] " << name << ": S=" << S << " -> STAY\n";
         fillRecord(TradeDecision::STAY, 0.0f);
         return TradeDecision::STAY;
     }
@@ -136,11 +143,18 @@ TradeDecision AIPlayer::wantsToTrade(int roundID, int swapTurn, bool logMode, bo
     float final_probability = (skillLevel * ev_decision) + ((1.0f - skillLevel) * p_psych);
     final_probability = std::max(0.05f, std::min(0.95f, final_probability));
 
+    if (showLogic) {
+        std::cout << "    [Logic] " << name << ": S=" << std::fixed << std::setprecision(2) << S 
+                  << ", D=" << D << ", P=" << final_probability << " -> ";
+    }
+
     if (dist(rng) < final_probability) {
+        if (showLogic) std::cout << "TRADE\n";
         fillRecord(TradeDecision::TRADE, final_probability);
         return TradeDecision::TRADE;
     }
 
+    if (showLogic) std::cout << "SKIP\n";
     fillRecord(TradeDecision::SKIP, final_probability);
     return TradeDecision::SKIP;
 }

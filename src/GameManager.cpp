@@ -73,11 +73,11 @@ void GameManager::startStreaming() {
     if (isMode3) {
         streamAIConfigs.open("data/" + currentSessionTS + "_ai_configs.csv");
         streamAIConfigs << "Batch,PlayerName,Archetype,Skill,Confidence,InitialBalance\n";
-        streamSwap << "Batch,RoundID,PlayerName,SwapTurn,Satisfaction,Desire,Probability,Swapped\n";
+        streamSwap << "Batch,RoundID,PlayerName,SwapTurn,Satisfaction,Desire,Probability,Decision,ScoreBefore,ScoreAfter,CardOut,CardIn\n";
         streamRound << "Batch,RoundNum,Dealer,Pot,WinnersCount,ScoresSummary\n";
         streamHistory << "Batch,Round,PlayerName,Balance\n";
     } else {
-        streamSwap << "RoundID,PlayerName,SwapTurn,Satisfaction,Desire,Probability,Swapped\n";
+        streamSwap << "RoundID,PlayerName,SwapTurn,Satisfaction,Desire,Probability,Decision,ScoreBefore,ScoreAfter,CardOut,CardIn\n";
         streamRound << "RoundNum,Dealer,Pot,WinnersCount,ScoresSummary\n";
         streamHistory << "Round";
         for(auto& p : players) streamHistory << "," << p->getName();

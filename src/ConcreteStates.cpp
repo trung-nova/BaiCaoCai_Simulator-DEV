@@ -110,6 +110,10 @@ void TradingState::update(GameManager* manager) {
                 if (manager->logMode) {
                     std::cout << "\033[33m[System] " << player->getName() << " has STAYED (Dằn).\033[0m\n";
                 }
+            } else {
+                if (manager->logMode) {
+                    std::cout << "\033[36m[System] " << player->getName() << " chose to SKIP (Từ chối lượt này).\033[0m\n";
+                }
             }
 
             turnRecords[player.get()] = sr;
