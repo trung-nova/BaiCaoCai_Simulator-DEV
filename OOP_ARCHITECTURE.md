@@ -14,8 +14,14 @@ classDiagram
         +players: vector~shared_ptr~Player~~
         +currentState: unique_ptr~GameState~
         +deck: Deck
+        +roundCount: int
+        +currentPot: int
+        +isMode3: bool
+        +simulationSeed: long long
+        +db: DatabaseManager
         +changeState(newState: GameState)
         +playRound()
+        +startStreaming()
     }
 
     class Player {
@@ -24,16 +30,27 @@ classDiagram
         #hand: vector~Card~
         #balance: int
         #skillLevel: float
-        +wantsToTrade()* bool
+        #confidenceLevel: float
+        #tradeDesire: float
+        #isDealer: bool
+        #hasStayed: bool
+        #isTilt: bool
+        #archetype: Archetype
+        +wantsToTrade()* TradeDecision
         +getScore() int
+        +isBaTien() bool
+        +receiveCard(c: Card)
+        +clearHand()
     }
 
     class AIPlayer {
-        +wantsToTrade() bool
+        -rng: mt19937
+        -dist: uniform_real_distribution
+        +wantsToTrade() TradeDecision
     }
 
     class HumanPlayer {
-        +wantsToTrade() bool
+        +wantsToTrade() TradeDecision
     }
 
     class GameState {
@@ -41,21 +58,59 @@ classDiagram
         +handle(context: GameManager)*
     }
 
-    class BettingState { +handle() }
-    class DealingState { +handle() }
-    class TradingState { +handle() }
-    class EvalState { +handle() }
+    class Card {
+        +suit: Suit
+        +rank: Rank
+        +getModuloValue() int
+        +toString() string
+    }
+
+    class Deck {
+        -cards: vector~Card~
+        +shuffle()
+        +drawCard() Card
+    }
+
+    class SwapRecord {
+        +roundID: int
+        +satisfaction: float
+        +desire: float
+        +probability: float
+        +decision: TradeDecision
+        +scoreBefore: int
+        +scoreAfter: int
+    }
 
     GameManager *-- Player : manages
     GameManager *-- GameState : has current
     Player <|-- AIPlayer : inherits
     Player <|-- HumanPlayer : inherits
-    GameState <|-- BettingState
-    GameState <|-- DealingState
-    GameState <|-- TradingState
-    GameState <|-- EvalState
     Player *-- Card : holds
+    Deck *-- Card : contains
+    TradingState ..> SwapRecord : generates
 ```
+
+
+### 1.1. Chi tiết các thuộc tính chính (Key Attributes)
+
+Để mô phỏng được tâm lý và hành vi phức tạp, các lớp được trang bị các thuộc tính đặc thù:
+
+#### Lớp `Player` (Trừu tượng)
+- `#skillLevel`: Quyết định khả năng tính toán lý trí.
+- `#confidenceLevel`: Biến động dựa trên lịch sử thắng/thua, ảnh hưởng đến độ mạo hiểm.
+- `#tradeDesire`: Biến tích lũy đại diện cho áp lực muốn đổi bài.
+- `#hasStayed`: Cờ đánh dấu trạng thái "Dằn bài", khóa mọi hành động trading tiếp theo.
+- `#isTilt`: Trạng thái "Cay cú" khi thua quá nhiều, làm thay đổi bộ tham số hành vi.
+
+#### Lớp `GameManager`
+- `+currentState`: Sử dụng **Smart Pointer** (`unique_ptr`) để quản lý vòng đời của trạng thái hiện tại.
+- `+roundCount`: Đếm số ván bài để đồng bộ dữ liệu với SQL/CSV.
+- `+simulationSeed`: Hạt giống gốc giúp tái lập toàn bộ kịch bản mô phỏng.
+- `+archetypeConfigs`: Bản đồ (Map) lưu trữ các tham số đặc trưng cho từng loại cá tính AI.
+
+#### Lớp `Card` & `Deck`
+- `+suit` & `+rank`: Sử dụng `enum class` để đảm bảo tính an toàn kiểu dữ liệu (Type Safety).
+- `-cards`: Vector chứa 52 đối tượng Card, được xáo trộn bằng thuật toán `std::shuffle`.
 
 ---
 

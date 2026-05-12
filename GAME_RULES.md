@@ -23,9 +23,11 @@ Hệ thống sử dụng bộ bài Tây tiêu chuẩn 52 lá.
 - Ace + 9 + King = 1 + 9 + 0 = 10 => **0 điểm** (Bù).
 
 ### 2.3. Bộ bài đặc biệt: "Ba Tiên"
-Nếu 3 lá bài trên tay đều là các lá bài hình (**Jack, Queen, hoặc King**), bộ bài đó được gọi là **Ba Tiên**.
-- **Giá trị**: Trong hệ thống mô phỏng, Ba Tiên được gán giá trị **10**.
-- Đây là bộ bài mạnh nhất, thắng mọi bộ bài điểm (0-9).
+Nếu 3 lá bài trên tay đều thuộc nhóm các lá bài hình (**Jack, Queen, hoặc King**), bộ bài đó được gọi là **Ba Tiên**.
+- **Giá trị**: Trong hệ thống mô phỏng, Ba Tiên được gán giá trị **10** (để dễ dàng so sánh trong code).
+- **Quy tắc tổ hợp**: Bất kỳ sự kết hợp nào giữa J, Q, K đều được tính. Ví dụ: {J, Q, K}, {J, J, Q}, hoặc cả 3 lá giống nhau như {J, J, J}, {Q, Q, Q}, {K, K, K} đều là Ba Tiên.
+- Đây là bộ bài mạnh nhất, thắng mọi bộ bài điểm (từ 0 đến 9 điểm).
+- Nếu cả Nhà Cái và Người chơi đều có Ba Tiên, Nhà Cái vẫn thắng (theo quy tắc House Edge).
 
 ---
 
