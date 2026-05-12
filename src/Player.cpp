@@ -116,6 +116,7 @@ bool AIPlayer::wantsToTrade(int roundID, int swapTurn, bool logMode, bool showLo
             outRecord->desire = D;
             outRecord->probability = prob;
             outRecord->swapped = dec;
+            outRecord->scoreBefore = score;
         }
     };
 
@@ -168,7 +169,10 @@ bool HumanPlayer::wantsToTrade(int roundID, int swapTurn, bool logMode, bool sho
     std::cout << "(Score: " << getScore() << "). Want to trade? (y/n): ";
     char choice; std::cin >> choice;
     bool decision = choice == 'y' || choice == 'Y';
-    if (outRecord) *outRecord = {roundID, getName(), swapTurn, getSatisfaction(getScore()), tradeDesire, 1.0f, decision};
+    if (outRecord) {
+        *outRecord = {roundID, getName(), swapTurn, getSatisfaction(getScore()), tradeDesire, 1.0f, decision};
+        outRecord->scoreBefore = getScore();
+    }
     return decision;
 }
 

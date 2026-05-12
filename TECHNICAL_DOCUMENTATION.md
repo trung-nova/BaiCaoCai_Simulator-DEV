@@ -4,9 +4,9 @@ Chào ông bạn Data Science! Đây là tài liệu hướng dẫn cách build,
 
 ## 1. Cấu trúc Tài liệu (Modular Docs)
 Để tiện cho việc tra cứu, tài liệu được chia làm 4 phần:
-1. [Luật chơi (Game Rules)](file:///d:/Tài liệu học tập/OOP/GAME_RULES.md): Cách tính điểm và phân định thắng thua.
-2. [Luồng vận hành (Game Flow)](file:///d:/Tài liệu học tập/OOP/GAME_FLOW.md): Quy trình State Machine và các bước chia bài/đổi bài.
-3. [Phân loại AI (Player Archetypes)](file:///d:/Tài liệu học tập/OOP/PLAYER_ARCHETYPES.md): Giải thích các tham số toán học (Sigmoid, Tilt) điều khiển AI.
+1. [Luật chơi (Game Rules)](./GAME_RULES.md): Cách tính điểm và phân định thắng thua.
+2. [Luồng vận hành (Game Flow)](./GAME_FLOW.md): Quy trình State Machine và các bước chia bài/đổi bài.
+3. [Phân loại AI (Player Archetypes)](./PLAYER_ARCHETYPES.md): Giải thích các tham số toán học (Sigmoid, Tilt) điều khiển AI.
 4. **Hướng dẫn Kỹ thuật (Tài liệu này)**: Build app và cấu trúc dữ liệu.
 
 ---

@@ -63,6 +63,8 @@ void TradingState::update(GameManager* manager) {
         }
 
         std::vector<Player*> willingToTrade;
+        std::map<Player*, SwapRecord> turnRecords;
+
         for (auto& player : manager->players) {
             if (player->getIsEliminated()) continue;
             player->updateTradeDesire(swapTurn);
@@ -88,30 +90,10 @@ void TradingState::update(GameManager* manager) {
                 }
                 willingToTrade.push_back(player.get());
             }
-            
-            if (manager->isStreaming) {
-#ifndef USE_SQLITE
-                if (manager->isMode3) manager->streamSwap << manager->currentBatchID << ",";
-                manager->streamSwap << sr.roundID << "," << sr.playerName << "," << sr.turn << "," 
-                                    << sr.satisfaction << "," << sr.desire << "," 
-                                    << sr.probability << "," << (sr.swapped ? 1 : 0) << "\n";
-#endif
-#ifdef USE_SQLITE
-                manager->db.insertSwap(sr.roundID, sr.playerName, sr.turn, sr.satisfaction, sr.desire, sr.probability, sr.swapped);
-#endif
-            }
+            turnRecords[player.get()] = sr;
         }
         
-        if (willingToTrade.size() < 2) {
-            if (manager->logMode) {
-                if (willingToTrade.size() == 1) {
-                    std::cout << "\033[36m[System] Only " << willingToTrade[0]->getName() << " wants to trade. Waiting for others...\033[0m\n";
-                } else {
-                    std::cout << "\033[36m[System] No one wants to trade this turn.\033[0m\n";
-                }
-            }
-            continue;
-        } else {
+        if (willingToTrade.size() >= 2) {
             std::shuffle(willingToTrade.begin(), willingToTrade.end(), state_rng);
             std::vector<bool> paired(willingToTrade.size(), false);
 
@@ -127,16 +109,15 @@ void TradingState::update(GameManager* manager) {
                 if (candidates.empty()) continue;
                 Player* chosenPartner = pA->pickSwapPartner(candidates);
                 if (chosenPartner) {
-                    if (manager->logMode && hasHuman) {
-                         std::cout << "\033[32m>> ACTION: " << pA->getName() << " is trading cards with " << chosenPartner->getName() << "\033[0m\n";
-                    }
-
                     Card* cardA = pA->getCardToTrade();
                     Card* cardB = chosenPartner->getCardToTrade();
                     
-                    if (manager->logMode && !hasHuman) {
-                         std::cout << "\033[32m>> ACTION: " << pA->getName() << " swaps " << cardA->toString() 
-                                   << " with " << chosenPartner->getName() << "'s " << cardB->toString() << "\033[0m\n";
+                    std::string strA = cardA->toString();
+                    std::string strB = cardB->toString();
+
+                    if (manager->logMode) {
+                         std::cout << "\033[32m>> ACTION: " << pA->getName() << " swaps " << strA 
+                                   << " with " << chosenPartner->getName() << "'s " << strB << "\033[0m\n";
                     }
                     
                     Card copyA = *cardA;
@@ -146,9 +127,45 @@ void TradingState::update(GameManager* manager) {
                     pA->successfulSwapsCount++;
                     chosenPartner->successfulSwapsCount++;
                     
+                    // Update records
+                    turnRecords[pA].cardOut = strA;
+                    turnRecords[pA].cardIn = strB;
+                    turnRecords[pA].scoreAfter = pA->getScore();
+                    
+                    turnRecords[chosenPartner].cardOut = strB;
+                    turnRecords[chosenPartner].cardIn = strA;
+                    turnRecords[chosenPartner].scoreAfter = chosenPartner->getScore();
+
                     paired[i] = true;
                     for(size_t j=0; j<willingToTrade.size(); ++j) if(willingToTrade[j] == chosenPartner) { paired[j] = true; break; }
                 }
+            }
+        } else if (manager->logMode) {
+            if (willingToTrade.size() == 1) {
+                std::cout << "\033[36m[System] Only " << willingToTrade[0]->getName() << " wants to trade. Waiting for others...\033[0m\n";
+            } else {
+                std::cout << "\033[36m[System] No one wants to trade this turn.\033[0m\n";
+            }
+        }
+
+        // Logging at the end of the turn
+        if (manager->isStreaming) {
+            for (auto& player : manager->players) {
+                if (player->getIsEliminated()) continue;
+                SwapRecord& sr = turnRecords[player.get()];
+                if (!sr.swapped) sr.scoreAfter = sr.scoreBefore; // No change if stayed
+
+#ifndef USE_SQLITE
+                if (manager->isMode3) manager->streamSwap << manager->currentBatchID << ",";
+                manager->streamSwap << sr.roundID << "," << sr.playerName << "," << sr.turn << "," 
+                                    << sr.satisfaction << "," << sr.desire << "," 
+                                    << sr.probability << "," << (sr.swapped ? 1 : 0) << ","
+                                    << sr.scoreBefore << "," << sr.scoreAfter << ","
+                                    << "\"" << sr.cardOut << "\",\"" << sr.cardIn << "\"\n";
+#endif
+#ifdef USE_SQLITE
+                manager->db.insertSwap(sr.roundID, sr.playerName, sr.turn, sr.satisfaction, sr.desire, sr.probability, sr.swapped, sr.scoreBefore, sr.scoreAfter, sr.cardOut, sr.cardIn);
+#endif
             }
         }
     }

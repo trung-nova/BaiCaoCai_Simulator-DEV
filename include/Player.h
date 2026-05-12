@@ -16,6 +16,10 @@ struct SwapRecord {
     float desire = 0.0f;
     float probability = 0.0f;
     bool swapped = false;
+    int scoreBefore = 0;
+    int scoreAfter = 0;
+    std::string cardOut = "";
+    std::string cardIn = "";
 
     SwapRecord() = default;
 };

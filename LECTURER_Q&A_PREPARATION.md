@@ -60,3 +60,27 @@ Tài liệu này tổng hợp các điểm kỹ thuật cao cấp đã được 
     *   "Hệ thống không sử dụng một phân phối chuẩn đơn lẻ mà sử dụng **Gaussian Mixture Model (GMM)**."
     *   "Dựa trên các Archetype (Shark, Maniac, Nit), hệ thống tạo ra một **phân phối tam đỉnh (Tri-modal Distribution)**. Mỗi đỉnh đại diện cho một tầng lớp kỹ năng trong xã hội người chơi."
     *   "Thông số `Concentration` (Nồng độ) cho phép kiểm soát độ phân hóa: Concentration càng cao, ranh giới giữa các nhóm kỹ năng càng rõ rệt; Concentration thấp sẽ tạo ra một dải kỹ năng liên tục và chồng lấn, phản ánh các thị trường chơi bài có tính cạnh tranh khác nhau."
+
+## 10. Phân tích Độ phức tạp (Complexity Analysis)
+*   **Vấn đề:** Hiệu năng của hệ thống khi mở rộng quy mô.
+*   **Câu hỏi dự kiến:** *"Độ phức tạp của thuật toán trong một ván đấu là bao nhiêu?"*
+*   **Trả lời:** 
+    *   "Về cơ bản, một ván đấu có độ phức tạp thời gian là **O(N)** với N là số lượng người chơi."
+    *   "Tuy nhiên, trong giai đoạn `TradingState` (Đổi bài), việc ghép cặp ngẫu nhiên yêu cầu xáo trộn (Shuffle) danh sách ứng viên, có độ phức tạp **O(N)**. Mỗi người thực hiện tối đa 3 lượt đổi, nên tổng quát vẫn là tuyến tính."
+    *   "Về không gian, em sử dụng cơ chế **Recycling Object** (Tái sử dụng đối tượng), nên độ phức tạp không gian chỉ là **O(N)** để lưu trữ trạng thái người chơi, không tăng thêm theo số ván đấu."
+
+## 11. Khả năng mở rộng & Scalability
+*   **Vấn đề:** Ứng dụng thực tế của kiến trúc.
+*   **Câu hỏi dự kiến:** *"Nếu muốn mô phỏng 1 tỷ ván đấu thay vì 1 triệu, hệ thống của em có gặp nút thắt (bottleneck) nào không?"*
+*   **Trả lời:** 
+    *   "Nút thắt lớn nhất sẽ là I/O (Ghi dữ liệu xuống ổ đĩa). Trong phiên bản v3.0, em đã tối ưu bằng cách sử dụng **Batch Transactions** cho SQLite (Gom 1000 ván vào một lần ghi) và **Streaming Buffer** cho CSV."
+    *   "Nếu lên quy mô 1 tỷ ván, em sẽ chuyển sang kiến trúc **Multi-threading** (Đa luồng), trong đó mỗi luồng quản lý một `GameManager` độc lập và sử dụng một `ConcurrentQueue` để ghi dữ liệu tập trung."
+
+## 12. Nguyên lý Clean Code & SOLID
+*   **Vấn đề:** Chất lượng mã nguồn.
+*   **Câu hỏi dự kiến:** *"Dự án này tuân thủ các nguyên lý SOLID như thế nào?"*
+*   **Trả lời:** 
+    *   **Single Responsibility**: Mỗi lớp State chỉ xử lý logic của một pha duy nhất. `DatabaseManager` chỉ lo việc ghi dữ liệu.
+    *   **Liskov Substitution**: `AIPlayer` và `HumanPlayer` có thể thay thế hoàn toàn cho `Player` mà không làm hỏng logic của `GameManager`.
+    *   **Dependency Inversion**: `GameManager` phụ thuộc vào interface `GameState` (trừu tượng) chứ không phụ thuộc vào các lớp cụ thể như `BettingState`.
+

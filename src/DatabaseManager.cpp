@@ -43,7 +43,11 @@ bool DatabaseManager::initTables() {
                           "satisfaction REAL,"
                           "desire REAL,"
                           "probability REAL,"
-                          "swapped INTEGER);";
+                          "swapped INTEGER,"
+                          "score_before INTEGER,"
+                          "score_after INTEGER,"
+                          "card_out TEXT,"
+                          "card_in TEXT);";
 
     char* errMsg = nullptr;
     if (sqlite3_exec(db, sqlRounds, NULL, NULL, &errMsg) != SQLITE_OK) return false;
@@ -69,10 +73,12 @@ bool DatabaseManager::insertRound(int roundNum, const std::string& dealer, int p
     return sqlite3_exec(db, sql.c_str(), NULL, NULL, NULL) == SQLITE_OK;
 }
 
-bool DatabaseManager::insertSwap(int roundID, const std::string& player, int turn, float satisfaction, float desire, float prob, bool swapped) {
+bool DatabaseManager::insertSwap(int roundID, const std::string& player, int turn, float satisfaction, float desire, float prob, bool swapped, int scoreBefore, int scoreAfter, const std::string& cardOut, const std::string& cardIn) {
     if (!connected) return false;
     std::string sql = "INSERT INTO swaps VALUES (" + std::to_string(roundID) + ", '" + 
                       player + "', " + std::to_string(turn) + ", " + std::to_string(satisfaction) + ", " + 
-                      std::to_string(desire) + ", " + std::to_string(prob) + ", " + std::to_string(swapped ? 1 : 0) + ");";
+                      std::to_string(desire) + ", " + std::to_string(prob) + ", " + std::to_string(swapped ? 1 : 0) + ", " +
+                      std::to_string(scoreBefore) + ", " + std::to_string(scoreAfter) + ", '" +
+                      cardOut + "', '" + cardIn + "');";
     return sqlite3_exec(db, sql.c_str(), NULL, NULL, NULL) == SQLITE_OK;
 }
