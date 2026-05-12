@@ -62,6 +62,12 @@ void Player::updateCachedValues() {
 }
 
 void Player::updateTiltStatus(GameManager* manager, int currentRound) {
+    if (manager && !manager->enableTilt) {
+        isTilt = false;
+        skillLevel = baseSkillLevel;
+        confidenceLevel = baseConfidenceLevel;
+        return;
+    }
     if (consecutiveLosses >= 5 || balance < startingBalance * 0.7f) {
         if (!isTilt) {
             isTilt = true;

@@ -68,6 +68,9 @@ Khi $Losses \geq 5$ hoặc $Balance < 0.7 \cdot Balance_{initial}$:
 
 **Hệ quả**: AI sẽ rơi vào vòng xoáy "đánh liều để gỡ vốn", một hiện tượng phổ biến trong tâm lý học cờ bạc (Gambler's Fallacy).
 
+> [!TIP]
+> **Tùy chọn Bật/Tắt (TILT Toggle)**: Trong nghiên cứu đối chứng, người chơi có thể tắt hoàn toàn cơ chế này bằng cách đặt `enable_tilt=false` trong file `config.ini`. Khi tắt, AI sẽ luôn giữ trạng thái tâm lý ổn định bất kể kết quả ván đấu.
+
 ---
 
 ## 5. Lợi thế Nhà cái (House Edge)

@@ -211,10 +211,16 @@ bool GameManager::loadConfig(const std::string& filename) {
         if (eqPos == std::string::npos) continue;
         
         std::string key = line.substr(0, eqPos);
-        float value = std::stof(line.substr(eqPos + 1));
+        std::string valStr = line.substr(eqPos + 1);
+        float value = 0;
+        try { value = std::stof(valStr); } catch (...) {}
         
         if (currentSection == "GLOBAL") {
             if (key == "seed") simulationSeed = (long long)value;
+            else if (key == "enable_tilt") {
+                if (valStr == "true" || valStr == "1") enableTilt = true;
+                else if (valStr == "false" || valStr == "0") enableTilt = false;
+            }
             continue;
         }
 
