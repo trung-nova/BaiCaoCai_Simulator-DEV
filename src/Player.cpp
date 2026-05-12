@@ -40,6 +40,7 @@ void Player::clearHand() {
     hand.clear();
     cachedScore = 0;
     cachedBaTien = false;
+    hasStayed = false;
 }
 
 void Player::updateCachedValues() {
@@ -102,12 +103,12 @@ AIPlayer::AIPlayer(const std::string& name, int balance, float skillLevel, float
     dist = std::uniform_real_distribution<float>(0.0f, 1.0f);
 }
 
-bool AIPlayer::wantsToTrade(int roundID, int swapTurn, bool logMode, bool showLogic, SwapRecord* outRecord) {
+TradeDecision AIPlayer::wantsToTrade(int roundID, int swapTurn, bool logMode, bool showLogic, SwapRecord* outRecord) {
     int score = getScore();
     float S = getSatisfaction(score);
     float D = tradeDesire;
 
-    auto fillRecord = [&](bool dec, float prob) {
+    auto fillRecord = [&](TradeDecision dec, float prob) {
         if (outRecord) {
             outRecord->roundID = roundID;
             outRecord->playerName = name;
@@ -115,14 +116,19 @@ bool AIPlayer::wantsToTrade(int roundID, int swapTurn, bool logMode, bool showLo
             outRecord->satisfaction = S;
             outRecord->desire = D;
             outRecord->probability = prob;
-            outRecord->swapped = dec;
+            outRecord->decision = dec;
             outRecord->scoreBefore = score;
         }
     };
 
-    if (isBaTien()) { fillRecord(false, 0.0f); return false; }
-    if (successfulSwapsCount >= 3) { fillRecord(false, 0.0f); return false; }
-    if (swapTurn > 1 && (score >= 5 || S > 0.75f)) { fillRecord(false, 0.0f); return false; }
+    if (isBaTien()) { fillRecord(TradeDecision::STAY, 0.0f); return TradeDecision::STAY; }
+    if (successfulSwapsCount >= 3) { fillRecord(TradeDecision::STAY, 0.0f); return TradeDecision::STAY; }
+    
+    // Logic Dằn (STAY): Nếu bài quá đẹp (S > 0.9)
+    if (S > 0.9f || score >= 9) {
+        fillRecord(TradeDecision::STAY, 0.0f);
+        return TradeDecision::STAY;
+    }
 
     float p_psych = 0.5f * (1.0f - S) + 0.5f * D + (confidenceLevel * S * 0.3f);
     p_psych = std::max(0.0f, std::min(1.0f, p_psych));
@@ -130,9 +136,13 @@ bool AIPlayer::wantsToTrade(int roundID, int swapTurn, bool logMode, bool showLo
     float final_probability = (skillLevel * ev_decision) + ((1.0f - skillLevel) * p_psych);
     final_probability = std::max(0.05f, std::min(0.95f, final_probability));
 
-    bool decision = dist(rng) < final_probability;
-    fillRecord(decision, final_probability);
-    return decision;
+    if (dist(rng) < final_probability) {
+        fillRecord(TradeDecision::TRADE, final_probability);
+        return TradeDecision::TRADE;
+    }
+
+    fillRecord(TradeDecision::SKIP, final_probability);
+    return TradeDecision::SKIP;
 }
 
 void AIPlayer::updateTradeDesire(int swapTurn) {
@@ -163,14 +173,28 @@ Player* AIPlayer::pickSwapPartner(const std::vector<Player*>& candidates) {
 HumanPlayer::HumanPlayer(const std::string& name, int balance, float skillLevel, float confidenceLevel, float tradeDesire, float k, float gamma, Archetype archetype)
     : Player(name, balance, skillLevel, confidenceLevel, tradeDesire, k, gamma, archetype) { isHuman = true; }
 
-bool HumanPlayer::wantsToTrade(int roundID, int swapTurn, bool logMode, bool showLogic, SwapRecord* outRecord) {
+TradeDecision HumanPlayer::wantsToTrade(int roundID, int swapTurn, bool logMode, bool showLogic, SwapRecord* outRecord) {
+    if (hasStayed) return TradeDecision::STAY;
     std::cout << getName() << ", your hand: ";
     for (const auto& c : hand) std::cout << c.toString() << " ";
-    std::cout << "(Score: " << getScore() << "). Want to trade? (y/n): ";
+    std::cout << "(Score: " << getScore() << "). \n[T] Trade, [S] Skip turn, [D] Stay/Dằn: ";
     char choice; std::cin >> choice;
-    bool decision = choice == 'y' || choice == 'Y';
+    
+    TradeDecision decision = TradeDecision::SKIP;
+    if (choice == 't' || choice == 'T') decision = TradeDecision::TRADE;
+    else if (choice == 'd' || choice == 'D') {
+        decision = TradeDecision::STAY;
+        hasStayed = true;
+    }
+
     if (outRecord) {
-        *outRecord = {roundID, getName(), swapTurn, getSatisfaction(getScore()), tradeDesire, 1.0f, decision};
+        outRecord->roundID = roundID;
+        outRecord->playerName = getName();
+        outRecord->turn = swapTurn;
+        outRecord->satisfaction = getSatisfaction(getScore());
+        outRecord->desire = tradeDesire;
+        outRecord->probability = 1.0f;
+        outRecord->decision = decision;
         outRecord->scoreBefore = getScore();
     }
     return decision;

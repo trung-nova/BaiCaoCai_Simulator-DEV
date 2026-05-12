@@ -73,11 +73,11 @@ bool DatabaseManager::insertRound(int roundNum, const std::string& dealer, int p
     return sqlite3_exec(db, sql.c_str(), NULL, NULL, NULL) == SQLITE_OK;
 }
 
-bool DatabaseManager::insertSwap(int roundID, const std::string& player, int turn, float satisfaction, float desire, float prob, bool swapped, int scoreBefore, int scoreAfter, const std::string& cardOut, const std::string& cardIn) {
+bool DatabaseManager::insertSwap(int roundID, const std::string& player, int turn, float satisfaction, float desire, float prob, int decision, int scoreBefore, int scoreAfter, const std::string& cardOut, const std::string& cardIn) {
     if (!connected) return false;
     std::string sql = "INSERT INTO swaps VALUES (" + std::to_string(roundID) + ", '" + 
                       player + "', " + std::to_string(turn) + ", " + std::to_string(satisfaction) + ", " + 
-                      std::to_string(desire) + ", " + std::to_string(prob) + ", " + std::to_string(swapped ? 1 : 0) + ", " +
+                      std::to_string(desire) + ", " + std::to_string(prob) + ", " + std::to_string(decision) + ", " +
                       std::to_string(scoreBefore) + ", " + std::to_string(scoreAfter) + ", '" +
                       cardOut + "', '" + cardIn + "');";
     return sqlite3_exec(db, sql.c_str(), NULL, NULL, NULL) == SQLITE_OK;

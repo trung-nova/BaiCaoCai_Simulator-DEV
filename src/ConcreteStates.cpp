@@ -67,6 +67,20 @@ void TradingState::update(GameManager* manager) {
 
         for (auto& player : manager->players) {
             if (player->getIsEliminated()) continue;
+            
+            // Nếu người chơi đã dằn (STAY) từ trước, bỏ qua lượt hỏi
+            if (player->hasStayed) {
+                SwapRecord sr;
+                sr.roundID = manager->roundCount;
+                sr.playerName = player->getName();
+                sr.turn = swapTurn;
+                sr.decision = TradeDecision::STAY;
+                sr.scoreBefore = player->getScore();
+                sr.scoreAfter = sr.scoreBefore;
+                turnRecords[player.get()] = sr;
+                continue;
+            }
+
             player->updateTradeDesire(swapTurn);
             
             bool isHuman = player->isHumanPlayer();
@@ -83,13 +97,21 @@ void TradingState::update(GameManager* manager) {
             bool showLogic = manager->logMode && !hasHuman;
             
             SwapRecord sr;
-            if (player->wantsToTrade(roundID, swapTurn, manager->logMode, showLogic, &sr)) {
+            TradeDecision decision = player->wantsToTrade(roundID, swapTurn, manager->logMode, showLogic, &sr);
+            
+            if (decision == TradeDecision::TRADE) {
                 if (manager->logMode && !isHuman && hasHuman) {
                     std::cout << "\033[37mPlayer: " << std::left << std::setw(5) << player->getName() << "\033[0m" 
                               << " | Hand: [Hidden] (Wants to trade)\n";
                 }
                 willingToTrade.push_back(player.get());
+            } else if (decision == TradeDecision::STAY) {
+                player->hasStayed = true; // Chốt dằn bài
+                if (manager->logMode) {
+                    std::cout << "\033[33m[System] " << player->getName() << " has STAYED (Dằn).\033[0m\n";
+                }
             }
+
             turnRecords[player.get()] = sr;
         }
         
@@ -153,18 +175,18 @@ void TradingState::update(GameManager* manager) {
             for (auto& player : manager->players) {
                 if (player->getIsEliminated()) continue;
                 SwapRecord& sr = turnRecords[player.get()];
-                if (!sr.swapped) sr.scoreAfter = sr.scoreBefore; // No change if stayed
+                if (sr.decision != TradeDecision::TRADE) sr.scoreAfter = sr.scoreBefore; // No change if skip/stay
 
 #ifndef USE_SQLITE
                 if (manager->isMode3) manager->streamSwap << manager->currentBatchID << ",";
                 manager->streamSwap << sr.roundID << "," << sr.playerName << "," << sr.turn << "," 
                                     << sr.satisfaction << "," << sr.desire << "," 
-                                    << sr.probability << "," << (sr.swapped ? 1 : 0) << ","
+                                    << sr.probability << "," << (int)sr.decision << ","
                                     << sr.scoreBefore << "," << sr.scoreAfter << ","
                                     << "\"" << sr.cardOut << "\",\"" << sr.cardIn << "\"\n";
 #endif
 #ifdef USE_SQLITE
-                manager->db.insertSwap(sr.roundID, sr.playerName, sr.turn, sr.satisfaction, sr.desire, sr.probability, sr.swapped, sr.scoreBefore, sr.scoreAfter, sr.cardOut, sr.cardIn);
+                manager->db.insertSwap(sr.roundID, sr.playerName, sr.turn, sr.satisfaction, sr.desire, sr.probability, (int)sr.decision, sr.scoreBefore, sr.scoreAfter, sr.cardOut, sr.cardIn);
 #endif
             }
         }

@@ -8,6 +8,8 @@
 
 typedef std::vector<Card> Hand;
 
+enum class TradeDecision { SKIP = 0, TRADE = 1, STAY = 2 };
+
 struct SwapRecord {
     int roundID = 0;
     std::string playerName = "";
@@ -15,7 +17,7 @@ struct SwapRecord {
     float satisfaction = 0.0f;
     float desire = 0.0f;
     float probability = 0.0f;
-    bool swapped = false;
+    TradeDecision decision = TradeDecision::SKIP;
     int scoreBefore = 0;
     int scoreAfter = 0;
     std::string cardOut = "";
@@ -48,6 +50,7 @@ protected:
     int roundsPlayed = 0;
     int successfulSwapsCount = 0;
     bool isEliminated = false;
+    bool hasStayed = false;
     std::vector<int> bankrollHistory;
 
     Archetype archetype;
@@ -109,7 +112,7 @@ public:
     void updateTiltStatus(class GameManager* manager, int currentRound);
 
     // Polymorphic methods
-    virtual bool wantsToTrade(int roundID, int swapTurn, bool logMode = false, bool showLogic = false, SwapRecord* outRecord = nullptr) = 0;
+    virtual TradeDecision wantsToTrade(int roundID, int swapTurn, bool logMode = false, bool showLogic = false, SwapRecord* outRecord = nullptr) = 0;
     virtual Card* getCardToTrade() = 0;
     virtual void updateTradeDesire(int swapTurn) = 0;
     virtual Player* pickSwapPartner(const std::vector<Player*>& candidates) = 0;
@@ -122,7 +125,7 @@ private:
 
 public:
     AIPlayer(const std::string& name, int balance, float skillLevel, float confidenceLevel, float tradeDesire, float k = 1.0f, float gamma = 2.0f, Archetype archetype = Archetype::NORMAL, unsigned seed = 0);
-    bool wantsToTrade(int roundID, int swapTurn, bool logMode = false, bool showLogic = false, SwapRecord* outRecord = nullptr) override;
+    TradeDecision wantsToTrade(int roundID, int swapTurn, bool logMode = false, bool showLogic = false, SwapRecord* outRecord = nullptr) override;
     Card* getCardToTrade() override;
     void updateTradeDesire(int swapTurn) override;
     Player* pickSwapPartner(const std::vector<Player*>& candidates) override;
@@ -131,7 +134,7 @@ public:
 class HumanPlayer : public Player {
 public:
     HumanPlayer(const std::string& name, int balance, float skillLevel, float confidenceLevel, float tradeDesire, float k = 1.0f, float gamma = 2.0f, Archetype archetype = Archetype::NORMAL);
-    bool wantsToTrade(int roundID, int swapTurn, bool logMode = false, bool showLogic = false, SwapRecord* outRecord = nullptr) override;
+    TradeDecision wantsToTrade(int roundID, int swapTurn, bool logMode = false, bool showLogic = false, SwapRecord* outRecord = nullptr) override;
     Card* getCardToTrade() override;
     void updateTradeDesire(int swapTurn) override;
     Player* pickSwapPartner(const std::vector<Player*>& candidates) override;

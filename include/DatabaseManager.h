@@ -26,7 +26,7 @@ public:
     bool endTransaction();
     
     bool insertRound(int roundNum, const std::string& dealer, int pot, int winners, const std::string& scores);
-    bool insertSwap(int roundID, const std::string& player, int turn, float satisfaction, float desire, float prob, bool swapped, int scoreBefore, int scoreAfter, const std::string& cardOut, const std::string& cardIn);
+    bool insertSwap(int roundID, const std::string& player, int turn, float satisfaction, float desire, float prob, int decision, int scoreBefore, int scoreAfter, const std::string& cardOut, const std::string& cardIn);
 };
 
 #endif // DATABASEMANAGER_H
