@@ -35,6 +35,8 @@ public:
     int getModuloValue() const;
     std::string toString(bool useColor = true) const;
     std::string getSuitIcon() const;
+    bool isFaceCard() const { return rank == Rank::JACK || rank == Rank::QUEEN || rank == Rank::KING; }
+    bool isAce() const { return rank == Rank::ACE; }
 };
 
 #endif // CARD_H

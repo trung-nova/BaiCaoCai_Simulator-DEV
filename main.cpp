@@ -9,6 +9,9 @@
 #include <string>
 #include <vector>
 #include <memory>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 #define RESET   "\033[0m"
 #define RED     "\033[31m"
@@ -50,6 +53,9 @@ SimParams getParams() {
 }
 
 int main() {
+#ifdef _WIN32
+    SetConsoleOutputCP(65001);
+#endif
   while (true) {
     GameManager::clearScreen();
     std::cout << BOLD << BLUE << "========================================" << RESET << "\n";

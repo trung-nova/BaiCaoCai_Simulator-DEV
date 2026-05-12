@@ -132,5 +132,30 @@ Tính tái lập được đảm bảo bởi thứ tự rút số không đổi.
 2.  **Kiểm soát Biến số (Sensitivity Analysis)**: Nhà nghiên cứu có thể giữ nguyên Seed (để giữ nguyên bộ bài và tính cách nhân vật) nhưng thay đổi các tham số trong `config.ini` để quan sát sự thay đổi của kết quả, giúp cô lập biến số hiệu quả.
 3.  **Hành vi Định mệnh**: Quyết định của AI không còn là "may rủi" mà là kết quả tất yếu của một chuỗi logic toán học bắt nguồn từ Seed. Điều này cho phép phân tích hành vi AI như một hệ thống tất định phức hợp.
 
+---
+
+## 7. Cơ chế Săn Ba Tiên Chiến thuật (Tactical Ba Tiên Hunting)
+
+Hệ thống mô phỏng một cấp độ tư duy cao hơn cho AI thông qua việc nhận diện bộ bài có tiềm năng thắng tuyệt đối (Ba Tiên).
+
+### 7.1. Logic Phân loại Kỹ năng (Heuristic Selection)
+Cơ chế này chỉ kích hoạt khi AI đạt ngưỡng Kỹ năng thực tế lớn hơn một giá trị giới hạn ($S_{threshold} = 0.7$).
+- **AI Phổ thông ($S \le 0.7$)**: Tiếp cận theo hướng "Tối đa hóa điểm số". Coi lá bài Tây (0 điểm) là rác và ưu tiên vứt đi để tìm lá bài số (1-9).
+- **AI Cao cấp ($S > 0.7$)**: Tiếp cận theo hướng "Tối ưu hóa bộ bài đặc biệt".
+
+### 7.2. Điều kiện kích hoạt Hunting Mode
+Hunting Mode được kích hoạt khi và chỉ khi:
+1.  **Số lượng quân hình (J, Q, K)** trong tay hiện tại = **2**.
+2.  **Lá bài còn lại không phải là lá Ace (Xì)**.
+    - *Lưu ý*: Việc loại trừ lá Ace là một biến số chiến thuật, giả định rằng sự kết hợp giữa 2 lá Tây và 1 lá Ace mang lại một giá trị kỳ vọng khác hoặc nằm ngoài chiến lược săn bài của AI cao cấp trong mô phỏng này.
+
+### 7.3. Hành động (Discard Decision)
+Thay vì vứt lá bài 0 điểm (Tây) như logic thông thường, AI cao cấp sẽ:
+- **Giữ lại 2 lá Tây**.
+- **Vứt bỏ lá bài số/thường (lá thứ 3)**.
+- **Mục tiêu**: Tận dụng cơ hội bốc được lá Tây thứ 3 để đạt bộ Ba Tiên (Thắng tuyệt đối).
+
+Điều này giúp mô phỏng sự khác biệt rõ rệt giữa một người chơi chỉ biết tính điểm (Normal/Maniac) và một người chơi biết "nuôi bài" (Shark).
+
 
 
