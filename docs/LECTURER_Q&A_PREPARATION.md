@@ -99,3 +99,11 @@ Tài liệu này tổng hợp các điểm kỹ thuật cao cấp đã được 
     *   **Trò chơi có Tổng âm (Negative-Sum Game):** Kết quả Win Rate hội tụ về ~42% chứng minh lợi thế toán học tuyệt đối của Nhà cái (House Edge). Chiến thuật tối ưu không phải là thắng đậm mà là quản trị rủi ro để tồn tại lâu nhất.
     *   **Hữu dụng hữu hạn (Bounded Rationality):** Dự án chứng minh con người không bao giờ chơi tối ưu 100% vì bị giới hạn bởi năng lực tính toán và cảm xúc (thể hiện qua hàm Sigmoid).
     *   **Sự tiến hóa của chiến thuật (ESS):** Qua hàng triệu ván đấu, nhóm **Shark** (lý trí) luôn có tỉ lệ sống sót và ROI cao nhất, chứng minh rằng trong môi trường rủi ro, sự kỷ luật và lý trí là chiến thuật ổn định nhất (Evolutionary Stable Strategy)."
+
+## 15. Quy trình Kiểm định & Làm sạch (Verification & Technical Debt)
+*   **Vấn đề:** Tính chuyên nghiệp và ổn định của mã nguồn.
+*   **Câu hỏi dự kiến:** *"Làm sao em đảm bảo dự án này không có lỗi logic tiềm ẩn khi chạy hàng triệu ván đấu?"*
+*   **Trả lời:** 
+    *   **Chuẩn hóa Mã nguồn (Standardization):** "Em đã thực hiện một đợt làm sạch nợ kỹ thuật (Technical Debt Cleanup), chuẩn hóa toàn bộ cấu trúc include theo project-root. Điều này giúp loại bỏ hoàn toàn các lỗi xung quanh việc liên kết file (Linker errors)."
+    *   **Kiểm thử Đa tầng (Multi-layer Testing):** "Hệ thống có bộ test tự động gồm: **Unit Test** (kiểm tra logic toán học của từng quân bài, cách tính điểm) và **Integration Test** (sử dụng Python script để kiểm tra việc ghi dữ liệu SQLite/CSV có bị lỗi hay mất mát thông tin không)."
+    *   **Báo cáo Phân tích (Automated Reporting):** "Mỗi lượt chạy đều sinh ra Summary Report với cơ chế tính toán độ dài chuỗi tự động, đảm bảo dữ liệu trình bày luôn thẳng hàng và chính xác, giúp người dùng (nhà nghiên cứu) dễ dàng kiểm tra nhanh các con số bất thường."

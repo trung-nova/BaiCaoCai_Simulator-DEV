@@ -152,7 +152,7 @@ void GameManager::printSummary() {
         std::stringstream ss;
         ss << std::fixed << std::setprecision(1) << winRate << "%";
         std::cout << std::left << std::setw(12) << ss.str();
-        std::cout << "        " << p->lastHand;
+        std::cout << p->lastHand;
         int visibleLen = p->lastHandPlain.length();
         int pad = std::max(0, 25 - visibleLen);
         std::cout << std::string(pad, ' ') << p->lastScore << "\n";
