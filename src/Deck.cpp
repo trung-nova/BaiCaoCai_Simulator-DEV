@@ -1,4 +1,4 @@
-#include "../include/Deck.h"
+#include "Deck.h"
 #include <algorithm>
 #include <stdexcept>
 #include <chrono>

@@ -1,3 +1,6 @@
 CompileFlags:
-  Add: [-Iinclude, -std=c++17]
+  Add: [-Iinclude, -Isrc, -I., -std=c++17]
   Compiler: C:\msys64\ucrt64\bin\g++.exe
+
+Diagnostics:
+  Suppress: ["sqlite3.c", "sqlite3.h", "sqlite3"]

@@ -1,5 +1,5 @@
-#include "../include/Player.h"
-#include "../include/GameManager.h"
+#include "Player.h"
+#include "GameManager.h"
 #include <cmath>
 #include <algorithm>
 #include <chrono>

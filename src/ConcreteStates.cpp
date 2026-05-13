@@ -1,5 +1,5 @@
-#include "../include/ConcreteStates.h"
-#include "../include/GameManager.h"
+#include "ConcreteStates.h"
+#include "GameManager.h"
 #include <iostream>
 #include <iomanip>
 #include <algorithm>

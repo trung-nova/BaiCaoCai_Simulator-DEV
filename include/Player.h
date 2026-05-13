@@ -88,6 +88,8 @@ public:
         }
     }
     bool isHumanPlayer() const { return isHuman; }
+    bool getIsTilt() const { return isTilt; }
+    int getConsecutiveLosses() const { return consecutiveLosses; }
     std::vector<int>& getBankrollHistory() { return bankrollHistory; }
 
     // Set
@@ -100,6 +102,7 @@ public:
         lastHandPlain = "---"; 
         lastScore = 0; 
     }
+    void setConsecutiveLosses(int l) { consecutiveLosses = l; }
 
     int getScore() const;
     bool isBaTien() const;

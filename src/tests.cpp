@@ -1,8 +1,8 @@
 #include <iostream>
 #include <cassert>
 #include <vector>
-#include "../include/Card.h"
-#include "../include/Player.h"
+#include "Card.h"
+#include "Player.h"
 
 // Simple Mock for Player to test score logic
 class TestPlayer : public AIPlayer {

@@ -84,3 +84,18 @@ Tài liệu này tổng hợp các điểm kỹ thuật cao cấp đã được 
     *   **Liskov Substitution**: `AIPlayer` và `HumanPlayer` có thể thay thế hoàn toàn cho `Player` mà không làm hỏng logic của `GameManager`.
     *   **Dependency Inversion**: `GameManager` phụ thuộc vào interface `GameState` (trừu tượng) chứ không phụ thuộc vào các lớp cụ thể như `BettingState`.
 
+## 13. Chỉ số AI & Hành vi (AI Metrics & Behavior)
+*   **Vấn đề:** Hiểu về các thông số điều khiển "bộ não" của AI.
+*   **Câu hỏi dự kiến:** *"Các chỉ số như Skill, Confidence hay k ảnh hưởng thế nào đến cách AI chơi bài?"*
+*   **Trả lời:** 
+    *   "Mỗi AI được đặc trưng bởi các chỉ số tâm lý học hành vi: **Skill** (quyết định chơi theo lý trí hay cảm tính), **k** (độ nhạy cảm cảm xúc), và **Midpoint** (ngưỡng hài lòng)."
+    *   "Cơ chế cốt lõi là **Hàm Sigmoid**: Nó tính toán mức độ hài lòng ($S$) của AI dựa trên điểm số hiện tại. Nếu $S$ thấp và chỉ số **Aggression** (hung hăng) cao, AI sẽ có xác suất đổi bài lớn hơn."
+    *   "Đặc biệt, cơ chế **TILT (Mất bình tĩnh)** sẽ kích hoạt khi AI thua liên tiếp, làm giảm Skill và tăng Confidence ảo, khiến AI đưa ra các quyết định liều lĩnh để gỡ vốn — mô phỏng chính xác tâm lý con bạc thực tế."
+
+## 14. Lý thuyết Trò chơi ứng dụng (Applied Game Theory)
+*   **Vấn đề:** Ý nghĩa khoa học rút ra từ kết quả mô phỏng.
+*   **Câu hỏi dự kiến:** *"Lý thuyết trò chơi nào được rút ra từ dự án này?"*
+*   **Trả lời:** 
+    *   **Trò chơi có Tổng âm (Negative-Sum Game):** Kết quả Win Rate hội tụ về ~42% chứng minh lợi thế toán học tuyệt đối của Nhà cái (House Edge). Chiến thuật tối ưu không phải là thắng đậm mà là quản trị rủi ro để tồn tại lâu nhất.
+    *   **Hữu dụng hữu hạn (Bounded Rationality):** Dự án chứng minh con người không bao giờ chơi tối ưu 100% vì bị giới hạn bởi năng lực tính toán và cảm xúc (thể hiện qua hàm Sigmoid).
+    *   **Sự tiến hóa của chiến thuật (ESS):** Qua hàng triệu ván đấu, nhóm **Shark** (lý trí) luôn có tỉ lệ sống sót và ROI cao nhất, chứng minh rằng trong môi trường rủi ro, sự kỷ luật và lý trí là chiến thuật ổn định nhất (Evolutionary Stable Strategy)."

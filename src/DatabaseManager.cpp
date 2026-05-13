@@ -1,4 +1,4 @@
-#include "../include/DatabaseManager.h"
+#include "DatabaseManager.h"
 #include <iostream>
 
 DatabaseManager::DatabaseManager() : db(nullptr), connected(false) {}

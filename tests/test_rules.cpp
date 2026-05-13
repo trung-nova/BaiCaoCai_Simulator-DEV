@@ -1,6 +1,5 @@
-#include "../include/Card.h"
-#include "../include/Player.h"
-#include "../include/AIPlayer.h"
+#include "Card.h"
+#include "Player.h"
 #include <iostream>
 #include <cassert>
 #include <vector>
