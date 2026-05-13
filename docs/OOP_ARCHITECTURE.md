@@ -10,42 +10,35 @@ Hệ thống được thiết kế theo mô hình phân lớp rõ ràng, tách b
 
 ```mermaid
 classDiagram
-    class GameManager {
-        +players: vector~shared_ptr~Player~~
-        +currentState: unique_ptr~GameState~
-        +deck: Deck
-        +roundCount: int
-        +currentPot: int
-        +isMode3: bool
-        +simulationSeed: long long
-        +db: DatabaseManager
-        +changeState(newState: GameState)
-        +playRound()
-        +startStreaming()
+    %% --- Tính Đa hình & Kế thừa trong Game States ---
+    class GameState {
+        <<interface>>
+        +handle(context: GameManager)*
     }
 
+    class BettingState { +handle(context) }
+    class DealingState { +handle(context) }
+    class TradingState { +handle(context) }
+    class EvalState { +handle(context) }
+
+    GameState <|-- BettingState : Kế thừa (Inheritance)
+    GameState <|-- DealingState : Kế thừa (Inheritance)
+    GameState <|-- TradingState : Kế thừa (Inheritance)
+    GameState <|-- EvalState : Kế thừa (Inheritance)
+
+    %% --- Tính Đa hình & Kế thừa trong Player ---
     class Player {
         <<abstract>>
         #name: string
         #hand: vector~Card~
         #balance: int
         #skillLevel: float
-        #confidenceLevel: float
-        #tradeDesire: float
-        #isDealer: bool
-        #hasStayed: bool
         #isTilt: bool
-        #archetype: Archetype
         +wantsToTrade()* TradeDecision
         +getScore() int
-        +isBaTien() bool
-        +receiveCard(c: Card)
-        +clearHand()
     }
 
     class AIPlayer {
-        -rng: mt19937
-        -dist: uniform_real_distribution
         +wantsToTrade() TradeDecision
     }
 
@@ -53,16 +46,22 @@ classDiagram
         +wantsToTrade() TradeDecision
     }
 
-    class GameState {
-        <<interface>>
-        +handle(context: GameManager)*
+    Player <|-- AIPlayer : Đa hình (Polymorphism)
+    Player <|-- HumanPlayer : Đa hình (Polymorphism)
+
+    %% --- Lớp Điều khiển ---
+    class GameManager {
+        +players: vector~shared_ptr~Player~~
+        +currentState: unique_ptr~GameState~
+        +deck: Deck
+        +changeState(newState: GameState)
+        +playRound()
     }
 
     class Card {
         +suit: Suit
         +rank: Rank
         +getModuloValue() int
-        +toString() string
     }
 
     class Deck {
@@ -71,23 +70,10 @@ classDiagram
         +drawCard() Card
     }
 
-    class SwapRecord {
-        +roundID: int
-        +satisfaction: float
-        +desire: float
-        +probability: float
-        +decision: TradeDecision
-        +scoreBefore: int
-        +scoreAfter: int
-    }
-
-    GameManager *-- Player : manages
-    GameManager *-- GameState : has current
-    Player <|-- AIPlayer : inherits
-    Player <|-- HumanPlayer : inherits
-    Player *-- Card : holds
-    Deck *-- Card : contains
-    TradingState ..> SwapRecord : generates
+    GameManager *-- Player : Quản lý (Aggregation)
+    GameManager *-- GameState : Trạng thái hiện tại
+    Player *-- Card : Nắm giữ
+    Deck *-- Card : Chứa đựng
 ```
 
 
