@@ -120,53 +120,72 @@ void TradingState::update(GameManager* manager) {
         }
         
         if (willingToTrade.size() >= 2) {
-            std::shuffle(willingToTrade.begin(), willingToTrade.end(), state_rng);
-            std::vector<bool> paired(willingToTrade.size(), false);
+            std::vector<Card*> outgoingCardPtrs;
+            std::vector<Card> outgoingCardCopies;
+            std::vector<std::string> outgoingCardStrs;
+            
+            for (auto* p : willingToTrade) {
+                Card* c = p->getCardToTrade();
+                outgoingCardPtrs.push_back(c);
+                outgoingCardCopies.push_back(*c);
+                outgoingCardStrs.push_back(c->toString(true));
+            }
 
-            for (size_t i = 0; i < willingToTrade.size(); ++i) {
-                if (paired[i]) continue;
-                Player* pA = willingToTrade[i];
-                
-                std::vector<Player*> candidates;
-                for (size_t j = i + 1; j < willingToTrade.size(); ++j) {
-                    if (!paired[j]) candidates.push_back(willingToTrade[j]);
-                }
-                
-                if (candidates.empty()) continue;
-                Player* chosenPartner = pA->pickSwapPartner(candidates);
-                if (chosenPartner) {
-                    Card* cardA = pA->getCardToTrade();
-                    Card* cardB = chosenPartner->getCardToTrade();
-                    
-                    std::string strA = cardA->toString();
-                    std::string strB = cardB->toString();
-
-                    if (manager->logMode) {
-                         std::cout << "\033[32m>> ACTION: " << pA->getName() << " swaps " << strA 
-                                   << " with " << chosenPartner->getName() << "'s " << strB << "\033[0m\n";
+            std::vector<int> targetIndices(willingToTrade.size());
+            std::iota(targetIndices.begin(), targetIndices.end(), 0);
+            
+            if (willingToTrade.size() == 2) {
+                std::swap(targetIndices[0], targetIndices[1]);
+            } else {
+                bool isDerangement = false;
+                while (!isDerangement) {
+                    std::shuffle(targetIndices.begin(), targetIndices.end(), state_rng);
+                    isDerangement = true;
+                    for (size_t i = 0; i < targetIndices.size(); ++i) {
+                        if (targetIndices[i] == (int)i) {
+                            isDerangement = false;
+                            break;
+                        }
                     }
-                    
-                    Card copyA = *cardA;
-                    Card copyB = *cardB;
-                    pA->swapCard(cardA, &copyB);
-                    chosenPartner->swapCard(cardB, &copyA);
-                    pA->successfulSwapsCount++;
-                    chosenPartner->successfulSwapsCount++;
-                    
-                    // Update records
-                    turnRecords[pA].cardOut = strA;
-                    turnRecords[pA].cardIn = strB;
-                    turnRecords[pA].scoreAfter = pA->getScore();
-                    
-                    turnRecords[chosenPartner].cardOut = strB;
-                    turnRecords[chosenPartner].cardIn = strA;
-                    turnRecords[chosenPartner].scoreAfter = chosenPartner->getScore();
-
-                    paired[i] = true;
-                    for(size_t j=0; j<willingToTrade.size(); ++j) if(willingToTrade[j] == chosenPartner) { paired[j] = true; break; }
                 }
             }
-        } else if (manager->logMode) {
+
+            if (manager->logMode) {
+                std::cout << "\n\033[1m\033[35m[COMMON PLATE] ===========================\033[0m\n";
+                std::cout << "The following players put their cards in the common plate:\n";
+                for (size_t i = 0; i < willingToTrade.size(); ++i) {
+                    std::cout << "  - " << std::left << std::setw(8) << willingToTrade[i]->getName() << ": " << outgoingCardStrs[i] << "\n";
+                }
+                std::cout << "\033[35m-------------------------------------------\033[0m\n";
+                std::cout << "Redistributing cards (derangement rule)...\n";
+            }
+
+            for (size_t i = 0; i < willingToTrade.size(); ++i) {
+                Player* p = willingToTrade[i];
+                int fromIdx = targetIndices[i]; 
+                
+                Card newCard = outgoingCardCopies[fromIdx];
+                std::string strOut = outgoingCardCopies[i].toString(false); 
+                std::string strIn = newCard.toString(false); 
+
+                if (manager->logMode) {
+                    std::cout << "  \033[32m" << p->getName() << " receives " << newCard.toString(true) 
+                              << " (from " << willingToTrade[fromIdx]->getName() << ")\033[0m\n";
+                }
+
+                p->swapCard(outgoingCardPtrs[i], &newCard);
+                p->successfulSwapsCount++;
+
+                turnRecords[p].cardOut = strOut;
+                turnRecords[p].cardIn = strIn;
+                turnRecords[p].scoreAfter = p->getScore();
+            }
+            
+            if (manager->logMode) {
+                std::cout << "\033[1m\033[35m===========================================\033[0m\n";
+            }
+        }
+ else if (manager->logMode) {
             if (willingToTrade.size() == 1) {
                 std::cout << "\033[36m[System] Only " << willingToTrade[0]->getName() << " wants to trade. Waiting for others...\033[0m\n";
             } else {

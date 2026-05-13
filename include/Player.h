@@ -90,6 +90,7 @@ public:
     bool isHumanPlayer() const { return isHuman; }
     bool getIsTilt() const { return isTilt; }
     int getConsecutiveLosses() const { return consecutiveLosses; }
+    int getSuccessfulSwapsCount() const { return successfulSwapsCount; }
     std::vector<int>& getBankrollHistory() { return bankrollHistory; }
 
     // Set

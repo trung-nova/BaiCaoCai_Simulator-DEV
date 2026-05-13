@@ -14,9 +14,11 @@ echo [1/3] Compiling core objects...
 %CC% %FLAGS% -c src/Player.cpp -o Player.o
 if !ERRORLEVEL! NEQ 0 goto :FAIL
 
-:: 2. Build Logic Tests
-echo [2/3] Building Logic Tests (test_logic.exe)...
+:: 2. Build Tests
+echo [2/3] Building Tests...
 %CC% %FLAGS% tests/test_logic.cpp Card.o Player.o -o test_logic.exe
+if !ERRORLEVEL! NEQ 0 goto :FAIL
+%CC% %FLAGS% tests/test_trading.cpp Card.o Player.o -o test_trading.exe
 if !ERRORLEVEL! NEQ 0 goto :FAIL
 
 :: 3. Run Tests
@@ -29,6 +31,16 @@ if !ERRORLEVEL! NEQ 0 (
 ) else (
     echo.
     echo [SUCCESS] Logic Tests PASSED!
+)
+
+echo.
+test_trading.exe
+if !ERRORLEVEL! NEQ 0 (
+    echo.
+    echo [ERROR] Trading Tests FAILED!
+) else (
+    echo.
+    echo [SUCCESS] Trading Tests PASSED!
 )
 
 :: Run Python Integration Test if python is available
