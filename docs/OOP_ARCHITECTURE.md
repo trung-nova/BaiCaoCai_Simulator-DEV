@@ -10,70 +10,114 @@ Hệ thống được thiết kế theo mô hình phân lớp rõ ràng, tách b
 
 ```mermaid
 classDiagram
-    %% --- Tính Đa hình & Kế thừa trong Game States ---
+    %% --- Định nghĩa các Enums ---
+    class Suit { <<enumeration>> HEARTS, DIAMONDS, CLUBS, SPADES }
+    class Rank { <<enumeration>> ACE, TWO, ..., TEN, JACK, QUEEN, KING }
+    class Archetype { <<enumeration>> SHARK, MANIAC, NIT }
+    class TradeDecision { <<enumeration>> SKIP, TRADE, STAY }
+
+    %% --- Giao diện Trạng thái (State Pattern) ---
     class GameState {
         <<interface>>
-        +handle(context: GameManager)*
+        +handle(context: GameManager)* void
     }
 
-    class BettingState { +handle(context) }
-    class DealingState { +handle(context) }
-    class TradingState { +handle(context) }
-    class EvalState { +handle(context) }
+    class BettingState { +handle(context: GameManager) void }
+    class DealingState { +handle(context: GameManager) void }
+    class TradingState { +handle(context: GameManager) void }
+    class EvalState { +handle(context: GameManager) void }
 
-    GameState <|-- BettingState : Kế thừa (Inheritance)
-    GameState <|-- DealingState : Kế thừa (Inheritance)
-    GameState <|-- TradingState : Kế thừa (Inheritance)
-    GameState <|-- EvalState : Kế thừa (Inheritance)
+    GameState <|-- BettingState : Kế thừa
+    GameState <|-- DealingState : Kế thừa
+    GameState <|-- TradingState : Kế thừa
+    GameState <|-- EvalState : Kế thừa
 
-    %% --- Tính Đa hình & Kế thừa trong Player ---
+    %% --- Lớp trừu tượng Người chơi (Polymorphism) ---
     class Player {
         <<abstract>>
         #name: string
         #hand: vector~Card~
         #balance: int
         #skillLevel: float
+        #confidenceLevel: float
+        #tradeDesire: float
+        #isDealer: bool
+        #hasStayed: bool
         #isTilt: bool
+        #archetype: Archetype
         +wantsToTrade()* TradeDecision
         +getScore() int
+        +isBaTien() bool
+        +receiveCard(c: Card) void
+        +clearHand() void
+        +getName() string
+        +getBalance() int
+        +getSkillLevel() float
     }
 
     class AIPlayer {
+        -rng: mt19937
+        -dist: uniform_real_distribution
         +wantsToTrade() TradeDecision
+        -decideCardToTrade() int
     }
 
     class HumanPlayer {
         +wantsToTrade() TradeDecision
     }
 
-    Player <|-- AIPlayer : Đa hình (Polymorphism)
-    Player <|-- HumanPlayer : Đa hình (Polymorphism)
+    Player <|-- AIPlayer : Đa hình
+    Player <|-- HumanPlayer : Đa hình
+    Player o-- Archetype
 
-    %% --- Lớp Điều khiển ---
+    %% --- Lớp Điều khiển Trung tâm ---
     class GameManager {
         +players: vector~shared_ptr~Player~~
         +currentState: unique_ptr~GameState~
         +deck: Deck
-        +changeState(newState: GameState)
-        +playRound()
+        +db: DatabaseManager
+        +roundCount: int
+        +currentPot: int
+        +isMode3: bool
+        +simulationSeed: long long
+        +changeState(newState: GameState) void
+        +playRound() void
+        +startStreaming() void
     }
 
+    %% --- Lớp Dữ liệu & Tiện ích ---
     class Card {
         +suit: Suit
         +rank: Rank
         +getModuloValue() int
+        +toString() string
     }
 
     class Deck {
         -cards: vector~Card~
-        +shuffle()
+        +shuffle() void
         +drawCard() Card
+        +isEmpty() bool
     }
 
-    GameManager *-- Player : Quản lý (Aggregation)
+    class DatabaseManager {
+        -db: sqlite3*
+        -connected: bool
+        +connect(dbName: string) bool
+        +initTables() bool
+        +insertRound(...) bool
+        +insertSwap(...) bool
+    }
+
+    %% --- Mối quan hệ giữa các lớp ---
+    GameManager *-- Player : Quản lý (1..N)
     GameManager *-- GameState : Trạng thái hiện tại
-    Player *-- Card : Nắm giữ
-    Deck *-- Card : Chứa đựng
+    GameManager o-- Deck : Sử dụng
+    GameManager o-- DatabaseManager : Sử dụng
+    Player *-- Card : Nắm giữ (3)
+    Card o-- Suit
+    Card o-- Rank
+    Deck *-- Card : Chứa đựng (52)
 ```
 
 
