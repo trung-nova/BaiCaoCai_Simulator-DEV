@@ -7,13 +7,10 @@
 #include <numeric>
 #include <random>
 
-// Mocking some parts if needed, but here we can use the actual classes
-// Since TradingState logic is in ConcreteStates.cpp, we can't easily unit test it 
-// without including the whole state machine. 
-// However, we can test the DERANGEMENT logic principle here.
+// Tests the mathematical principle of derangement
 
 void testDerangementLogic() {
-    std::cout << "[Test] Derangement Redistribution Logic...";
+    std::cout << "Testing: Derangement Redistribution Logic...";
     
     const int numPlayers = 5;
     std::vector<int> indices(numPlayers);
@@ -52,7 +49,7 @@ void testDerangementLogic() {
 }
 
 void testHandUpdateAfterTrade() {
-    std::cout << "[Test] Hand Update After Trade Redistribution...";
+    std::cout << "Testing: Hand Update After Trade Redistribution...";
     
     // Create 3 AI players
     AIPlayer p1("P1", 10000, 0.5f, 0.5f, 0.0f, 1.0f, 2.0f, Archetype::NORMAL, 1);

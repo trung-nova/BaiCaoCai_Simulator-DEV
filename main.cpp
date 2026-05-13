@@ -67,11 +67,11 @@ int main() {
     GameManager manager; if (!manager.loadConfig("config.ini")) { std::cout << "Config error. Press Enter..."; std::cin.ignore(1000, '\n'); std::cin.get(); return 1; }
 
     unsigned seed;
-    if (manager.simulationSeed >= 0) { seed = (unsigned)manager.simulationSeed; std::cout << "[System] Seed from config: " << seed << "\n"; }
+    if (manager.simulationSeed >= 0) { seed = (unsigned)manager.simulationSeed; std::cout << "Seed from config: " << seed << "\n"; }
     else {
         long long mSeed = safeInput<long long>("Enter seed (-1 for random): ", -1, 999999999999);
         seed = (mSeed == -1) ? std::chrono::system_clock::now().time_since_epoch().count() : (unsigned)mSeed;
-        std::cout << "[System] Used seed: " << seed << "\n";
+        std::cout << "Using seed: " << seed << "\n";
     }
     manager.simulationSeed = (long long)seed; std::mt19937 gen(seed);
 

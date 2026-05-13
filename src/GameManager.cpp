@@ -236,7 +236,7 @@ bool GameManager::loadConfig(const std::string& filename) {
         else if (key == "min_skill") archetypeConfigs[arch].minSkill = value;
         else if (key == "max_skill") archetypeConfigs[arch].maxSkill = value;
     }
-    std::cout << "[Config] Successfully loaded archetype personalities from " << filename << "\n";
+    std::cout << "Successfully loaded archetype personalities from " << filename << "\n";
     return true;
 }
 
