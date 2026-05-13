@@ -195,12 +195,12 @@ Card* AIPlayer::getCardToTrade() {
         }
     }
 
-    // [New Logic] Ba Tien Hunting: If skill > 0.7 and has 2 faces, throw the 3rd card (if not Ace)
+    // Ba Tien Hunting: If skill > 0.7 and has 2 faces, throw the 3rd card (if not Ace)
     if (skillLevel > 0.7f && faceCount == 2 && nonFaceIdx != -1 && !hasAce) {
         return &hand[nonFaceIdx];
     }
 
-    // [Fallback] Old logic: Discard 0-value cards first (10, J, Q, K)
+    // Default logic: Discard 0-value cards first (10, J, Q, K)
     for (size_t i = 0; i < hand.size(); ++i) {
         if (hand[i].rank == Rank::JACK || hand[i].rank == Rank::QUEEN || hand[i].rank == Rank::KING || hand[i].rank == Rank::TEN)
             return &hand[i];
