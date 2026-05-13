@@ -106,14 +106,13 @@ void TradingState::update(GameManager* manager) {
                 }
                 willingToTrade.push_back(player.get());
             } else if (decision == TradeDecision::STAY) {
-                player->hasStayed = true; 
-                if (player->hasStayed) {
-                std::cout << "\033[33m" << player->getName() << " has STAYED.\033[0m\n";
-                continue;
+                player->hasStayed = true; // Chốt dằn bài
+                if (manager->logMode) {
+                    std::cout << "\033[33m[System] " << player->getName() << " has STAYED (Dằn).\033[0m\n";
                 }
             } else {
                 if (manager->logMode) {
-                    std::cout << "\033[36m" << player->getName() << " chose to SKIP.\033[0m\n";
+                    std::cout << "\033[36m[System] " << player->getName() << " chose to SKIP (Từ chối lượt này).\033[0m\n";
                 }
             }
 
@@ -152,13 +151,13 @@ void TradingState::update(GameManager* manager) {
             }
 
             if (manager->logMode) {
-                std::cout << "\n\033[35m=== COMMON PLATE TRADING ===\033[0m\n";
+                std::cout << "\n\033[1m\033[35m[COMMON PLATE] ===========================\033[0m\n";
                 std::cout << "The following players put their cards in the common plate:\n";
                 for (size_t i = 0; i < willingToTrade.size(); ++i) {
                     std::cout << "  - " << std::left << std::setw(8) << willingToTrade[i]->getName() << ": " << outgoingCardStrs[i] << "\n";
                 }
                 std::cout << "\033[35m-------------------------------------------\033[0m\n";
-                std::cout << "Redistributing cards...\n";
+                std::cout << "Redistributing cards (derangement rule)...\n";
             }
 
             for (size_t i = 0; i < willingToTrade.size(); ++i) {
@@ -188,9 +187,9 @@ void TradingState::update(GameManager* manager) {
         }
  else if (manager->logMode) {
             if (willingToTrade.size() == 1) {
-                std::cout << "\033[36mOnly " << willingToTrade[0]->getName() << " wants to trade. Waiting for others...\033[0m\n";
+                std::cout << "\033[36m[System] Only " << willingToTrade[0]->getName() << " wants to trade. Waiting for others...\033[0m\n";
             } else {
-                std::cout << "\033[36mNo one wants to trade this turn.\033[0m\n";
+                std::cout << "\033[36m[System] No one wants to trade this turn.\033[0m\n";
             }
         }
 

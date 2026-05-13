@@ -43,11 +43,11 @@ Tài liệu này tổng hợp các điểm kỹ thuật cao cấp đã được 
 ---
 
 ## 6. BÀI NÓI MẪU CHO PHẦN AI (HEURISTIC VS MACHINE LEARNING)
-*Phần này cực kỳ quan trọng để giảng viên thấy ông có tư duy hệ thống và hiểu về Data Science.*
+*Phần này tập trung vào việc thể hiện tư duy hệ thống và sự am hiểu về khoa học dữ liệu.*
 
 **Giảng viên hỏi:** *"Tại sao em không dùng các thuật toán AI hiện đại như Reinforcement Learning để Bot tự học cách thắng?"*
 
-**Ông trả lời:**
+**Câu trả lời đề xuất:**
 "Thưa Thầy/Cô, em chọn mô hình Heuristic dựa trên hàm Sigmoid vì 3 lý do chiến thuật:
 1.  **Mục tiêu là Mô phỏng Quần thể (Population Simulation):** Nếu dùng Học máy tối ưu, các Bot sẽ đều đánh giống nhau sau một thời gian. Mô hình của em cho phép giả lập sự đa dạng: có người chơi lý trí (Shark), có người chơi hung hãn (Maniac) và người chơi thận trọng (Nit).
 2.  **Tính Giải thích được (Explainability):** Trong nghiên cứu dữ liệu, 'Hộp đen' (Black Box) của Neural Network rất khó giải thích. Với hàm Sigmoid, em có thể vẽ biểu đồ và chỉ ra chính xác 'điểm gãy' tâm lý của từng loại AI dựa trên các tham số $k$ và $\gamma$.

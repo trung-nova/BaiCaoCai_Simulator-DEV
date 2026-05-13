@@ -1,6 +1,6 @@
 # TÀI LIỆU KỸ THUẬT TỔNG QUAN (TECHNICAL MASTER GUIDE)
 
-Chào ông bạn Data Science! Đây là tài liệu hướng dẫn cách build, vận hành và khai thác dữ liệu từ hệ thống mô phỏng Bài Cào Cái.
+Đây là tài liệu hướng dẫn cách biên dịch, vận hành và khai thác dữ liệu từ hệ thống mô phỏng Bài Cào Cái.
 
 ## 1. Cấu trúc Tài liệu (Modular Docs)
 Để tiện cho việc tra cứu, tài liệu được chia làm 4 phần:
@@ -21,7 +21,7 @@ Chào ông bạn Data Science! Đây là tài liệu hướng dẫn cách build,
 Cách nhanh nhất là sử dụng file batch đã soạn sẵn:
 1. Mở Terminal/CMD tại thư mục dự án.
 2. Chạy lệnh: `.\build_all.bat`
-3. Sau khi hoàn tất, ông sẽ có file `game_sql.exe`.
+3. Sau khi hoàn tất, hệ thống sẽ tạo ra file `game_sql.exe`.
 
 *Nếu muốn build thủ công bằng CMake:*
 ```bash
@@ -62,7 +62,7 @@ Bao gồm 2 bảng chính liên kết với nhau qua `round_id`:
 
 ## 4. Gợi ý Analysis Recipe (Python)
 
-Ông có thể nạp dữ liệu vào Pandas cực nhanh bằng cách sau:
+Dữ liệu có thể được nạp vào Pandas để phân tích như sau:
 
 ```python
 import sqlite3
@@ -104,4 +104,4 @@ Dự án cung cấp 2 cấp độ kiểm tra:
 
 ---
 
-Chúc ông bạn tìm ra được những insight thú vị từ "mớ hỗn độn" AI này!
+Hy vọng tài liệu này giúp ích cho việc nghiên cứu và phân tích dữ liệu AI của bạn.

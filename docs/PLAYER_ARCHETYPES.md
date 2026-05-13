@@ -4,7 +4,7 @@ Tài liệu này dành cho việc phân tích dữ liệu, giải thích các th
 
 ## 1. Ba nhóm Cá tính chính (Archetypes)
 
-Trong file `config.ini`, ông bạn sẽ thấy các thông số cho 3 nhóm AI:
+Trong file `config.ini`, hệ thống thiết lập các thông số cho 3 nhóm AI:
 
 | Nhóm | Đặc điểm hành vi | Thông số toán học |
 | :--- | :--- | :--- |

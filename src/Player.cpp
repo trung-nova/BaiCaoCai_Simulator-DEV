@@ -132,17 +132,17 @@ TradeDecision AIPlayer::wantsToTrade(int roundID, int swapTurn, bool logMode, bo
     };
 
     if (isBaTien()) { 
-        if (showLogic) std::cout << "    " << name << ": Ba Tiên -> STAY\n";
+        if (showLogic) std::cout << "    [Logic] " << name << ": Ba Tiên -> STAY\n";
         fillRecord(TradeDecision::STAY, 0.0f); return TradeDecision::STAY; 
     }
     if (successfulSwapsCount >= 3) { 
-        if (showLogic) std::cout << "    " << name << ": Max Swaps -> STAY\n";
+        if (showLogic) std::cout << "    [Logic] " << name << ": Max Swaps -> STAY\n";
         fillRecord(TradeDecision::STAY, 0.0f); return TradeDecision::STAY; 
     }
     
     // Logic Dằn (STAY): Nếu bài quá đẹp (S > 0.9)
     if (S > 0.9f || score >= 9) {
-        if (showLogic) std::cout << "    " << name << ": S=" << S << " -> STAY\n";
+        if (showLogic) std::cout << "    [Logic] " << name << ": S=" << S << " -> STAY\n";
         fillRecord(TradeDecision::STAY, 0.0f);
         return TradeDecision::STAY;
     }
@@ -154,7 +154,7 @@ TradeDecision AIPlayer::wantsToTrade(int roundID, int swapTurn, bool logMode, bo
     final_probability = std::max(0.05f, std::min(0.95f, final_probability));
 
     if (showLogic) {
-        std::cout << "    " << name << ": S=" << std::fixed << std::setprecision(2) << S 
+        std::cout << "    [Logic] " << name << ": S=" << std::fixed << std::setprecision(2) << S 
                   << ", D=" << D << ", P=" << final_probability << " -> ";
     }
 
@@ -195,12 +195,12 @@ Card* AIPlayer::getCardToTrade() {
         }
     }
 
-    // Priority: Keep face cards (J, Q, K) to hunt for Ba Tien
+    // [New Logic] Ba Tien Hunting: If skill > 0.7 and has 2 faces, throw the 3rd card (if not Ace)
     if (skillLevel > 0.7f && faceCount == 2 && nonFaceIdx != -1 && !hasAce) {
         return &hand[nonFaceIdx];
     }
 
-    // Default: discard lowest value cards (10, J, Q, K are 0 points)
+    // [Fallback] Old logic: Discard 0-value cards first (10, J, Q, K)
     for (size_t i = 0; i < hand.size(); ++i) {
         if (hand[i].rank == Rank::JACK || hand[i].rank == Rank::QUEEN || hand[i].rank == Rank::KING || hand[i].rank == Rank::TEN)
             return &hand[i];

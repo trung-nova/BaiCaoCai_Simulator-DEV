@@ -124,7 +124,7 @@ Mảng `satisfactionTable[11]` lưu trữ kết quả Sigmoid cho các mức đi
 
 ## 7. CÁC THAM SỐ CẤU HÌNH (CONFIGURATION PARAMETERS)
 
-Việc nắm vững các tham số này giúp ông bạn DS có thể "tinh chỉnh" môi trường mô phỏng để quan sát các hiện tượng khác nhau.
+Việc nắm vững các tham số này giúp người sử dụng có thể "tinh chỉnh" môi trường mô phỏng để quan sát các hiện tượng khác nhau.
 
 ### 7.1. Tham số Môi trường (Trong lúc chạy App)
 - **Skill Concentration (1-100)**: Độ tập trung kỹ năng. 
