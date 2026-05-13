@@ -176,3 +176,30 @@ Hệ thống sử dụng **Smart Pointers** (C++11/17) để loại bỏ hoàn t
 
 - Các thuộc tính nhạy cảm như `balance`, `skillLevel` được để ở mức `protected` hoặc `private`.
 - Chỉ các lớp "bạn bè" (`friend class`) như các `State` mới có quyền can thiệp sâu vào dữ liệu người chơi, đảm bảo tính toàn vẹn của dữ liệu trong suốt quá trình mô phỏng.
+
+---
+
+## 5. Sơ đồ rút gọn cho Presentation (Simplified Slide Version)
+
+Biểu đồ này lược bỏ các chi tiết kỹ thuật để tập trung vào luồng logic và cấu trúc kế thừa, phù hợp để đưa vào Slide thuyết trình.
+
+```mermaid
+classDiagram
+    class GameManager { +players, +currentState, +deck }
+    
+    class GameState { <<interface>> +handle()* }
+    class ConcreteStates { Betting, Dealing, Trading, Eval }
+    
+    class Player { <<abstract>> +wantsToTrade()* }
+    class AIPlayer { +wantsToTrade() }
+    class HumanPlayer { +wantsToTrade() }
+
+    GameState <|-- ConcreteStates : State Pattern
+    Player <|-- AIPlayer : Polymorphism
+    Player <|-- HumanPlayer : Polymorphism
+    
+    GameManager *-- GameState
+    GameManager *-- Player
+    GameManager o-- Deck
+    Player *-- Card
+```
