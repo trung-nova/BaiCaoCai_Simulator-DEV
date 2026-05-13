@@ -47,7 +47,7 @@ Chỉ số $D$ mô tả động lực thôi thúc AI thực hiện hành động
 **Trong đó:**
 - **$A$ (Aggression)**: $0.5 + (0.5 \cdot C)$.
 - **$Greed$ (Sự tham lam)**: Chỉ kích hoạt khi bài đã tốt nhưng người chơi vẫn muốn tối ưu thêm.
-  $$Greed = \begin{cases} 0.1 \cdot S & \text{nếu } C > 0.7 \text{ và } S > 0.5 \\ 0 & \text{trường hợp khác} \end{cases}$$
+  $$Greed = \begin{cases} 0.1 \cdot S & \text{nếu } C > 0.7 \text{ và } S > 0.5 \ 0 & \text{trường hợp khác} \end{cases}$$
 
 ---
 
