@@ -63,29 +63,33 @@ void Player::updateCachedValues() {
 
 void Player::updateTiltStatus(GameManager* manager, int currentRound) {
     if (manager && !manager->enableTilt) {
-        isTilt = false;
+        if (isTilt) {
+            isTilt = false;
+            if (manager) {
+                manager->tiltLogs.push_back("Round " + std::to_string(currentRound) + ", " + getName() + " (" + getArchetypeString() + ") exited TILT state (System Disabled).");
+            }
+        }
         skillLevel = baseSkillLevel;
         confidenceLevel = baseConfidenceLevel;
         return;
     }
+
     if (consecutiveLosses >= 5 || balance < startingBalance * 0.7f) {
         if (!isTilt) {
             isTilt = true;
             if (manager) {
-                std::string archStr;
-                switch (archetype) {
-                    case Archetype::SHARK: archStr = "Shark"; break;
-                    case Archetype::MANIAC: archStr = "Maniac"; break;
-                    case Archetype::NIT: archStr = "Nit"; break;
-                    default: archStr = "Normal"; break;
-                }
-                manager->tiltLogs.push_back("Round " + std::to_string(currentRound) + ", " + getName() + " (" + archStr + ") entered TILT state.");
+                manager->tiltLogs.push_back("Round " + std::to_string(currentRound) + ", " + getName() + " (" + getArchetypeString() + ") entered TILT state.");
             }
         }
         skillLevel = baseSkillLevel * 0.9f;
         confidenceLevel = std::min(1.0f, baseConfidenceLevel + 0.3f);
     } else {
-        isTilt = false;
+        if (isTilt) {
+            isTilt = false;
+            if (manager) {
+                manager->tiltLogs.push_back("Round " + std::to_string(currentRound) + ", " + getName() + " (" + getArchetypeString() + ") exited TILT state.");
+            }
+        }
         skillLevel = baseSkillLevel;
         confidenceLevel = baseConfidenceLevel;
     }

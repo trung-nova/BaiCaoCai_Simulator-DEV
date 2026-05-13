@@ -113,7 +113,17 @@ int main() {
       while (simActive) {
         if (subMode == 2) { for (auto& pl : manager.players) pl->resetStats(); manager.roundCount = 0; }
         int numR = (isLog) ? 1 : safeInput<int>("Number of rounds: ", 1, 10000000);
-        manager.simulationParams = "Used Seed: " + std::to_string(manager.simulationSeed) + "\nPlayers: " + std::to_string(p.nP) + "\nRounds: " + std::to_string(numR);
+        std::stringstream ss;
+        ss << "Mode: " << (isInter ? "Interactive" : (isLog ? "Log Mode" : "Standard")) << "\n"
+           << "Submode: " << (subMode == 1 ? "Persistent" : "Reset Every Round") << "\n"
+           << "Used Seed: " << manager.simulationSeed << "\n"
+           << "Players: " << p.nP << "\n"
+           << "Min Skill: " << std::fixed << std::setprecision(2) << p.minS << "\n"
+           << "Max Skill: " << p.maxS << "\n"
+           << "Skill Concentration: " << p.conc << "\n"
+           << "Archetypes: Shark=" << p.sP << "%, Maniac=" << p.mP << "%, Nit=" << (100.0f - p.sP - p.mP) << "%\n"
+           << "Rounds: " << numR;
+        manager.simulationParams = ss.str();
         if (manager.autoExport) manager.startStreaming();
 #ifdef USE_SQLITE
         if (manager.autoExport) manager.db.beginTransaction();
@@ -154,6 +164,12 @@ int main() {
           manager.db.beginTransaction();
 #endif
       }
+
+      std::stringstream ss;
+      ss << "Mode: Random (Continuous Research)\n"
+         << "Used Seed: " << manager.simulationSeed << "\n"
+         << "Batches: " << batches;
+      manager.simulationParams = ss.str();
 
       std::cout << GREEN << "Running Random Mode (Continuous Research)..." << RESET << "\n";
       for (int b = 0; b < batches; ++b) {

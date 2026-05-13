@@ -94,6 +94,20 @@ Về mặt xác suất, trong một ván đấu ngẫu nhiên:
 - $P(D \geq P) \approx 55\%$
 $\Rightarrow$ Nhà cái có lợi thế xấp xỉ **10%** trên mỗi lệnh cược (rất cao so với các trò chơi Casino tiêu chuẩn).
 
+### 5.1. Phân tích Tỉ lệ thắng (Win Rate Analysis)
+
+Trong báo cáo tổng kết (`FINAL SIMULATION REPORT`), tỉ lệ thắng (**Win Rate**) của các AI thường dao động quanh mức **41% - 44%**. Điều này có thể gây bất ngờ nếu so sánh với các trò chơi có 1 người thắng duy nhất (thường là $1/N$).
+
+**Nguyên nhân toán học:**
+1.  **Cơ chế đối đầu 1-1**: Mỗi ván đấu là tập hợp các cuộc đối đầu riêng biệt giữa từng Nhà con và Nhà cái. Nhiều người chơi có thể cùng "thắng" trong một ván nếu họ đều có điểm cao hơn Nhà cái.
+2.  **Lợi thế Hòa (Tie-break House Edge)**: Như đã phân tích, xác suất thắng lý thuyết của Nhà con là ~45%. 
+3.  **Hệ quả của việc luân phiên làm Cái (Dealer Rotation)**:
+    - Khi làm **Nhà con** (chiếm $(N-1)/N$ thời gian): Tỉ lệ thắng kỳ vọng là $45\%$.
+    - Khi làm **Nhà cái** (chiếm $1/N$ thời gian): Một "trận thắng" của Nhà cái chỉ được ghi nhận trong báo cáo nếu **tất cả** Nhà con khác đều thua (xác suất cực thấp, xấp xỉ $0.55^{N-1}$).
+    - **Công thức hội tụ**: Với $N=17$, Win Rate tổng thể $\approx \frac{16}{17} \times 45\% + \frac{1}{17} \times 0\% \approx \mathbf{42.3\%}$.
+
+Điều này giải thích tại sao các AI có kỹ năng cao (Shark) thường có Win Rate nhỉnh hơn (~44%) do tối ưu hóa được lượt đổi bài, trong khi các AI kém hơn sẽ thấp hơn mức trung bình này.
+
 ---
 
 ## 6. Cơ chế Hạt giống Ngẫu nhiên và Tính Tái lập (Deterministic Seed & Reproducibility)
