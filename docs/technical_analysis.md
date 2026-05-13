@@ -13,7 +13,7 @@ Giá trị dùng để tính điểm số được chuẩn hóa qua hàm `getMod
 - **Rank 1 (Ace) đến 9**: Giá trị = face value (1-9).
 - **Rank 10 (Ten), 11 (Jack), 12 (Queen), 13 (King)**: Giá trị = 0.
 - **Quy tắc**: Điểm số của bộ bài 3 lá là tổng giá trị modulo của từng lá bài, sau đó lấy phần dư khi chia cho 10.
-  - Công thức: `Score = (V1 + V2 + V3) % 10`
+- **Công thức**: $Score = (V_1 + V_2 + V_3) \pmod{10}$
 
 ### 1.2. Phân loại Bộ bài Đặc biệt (Special Hands)
 - **Ba Tiên (Highest)**: Điều kiện: `(Rank1 >= 11) && (Rank2 >= 11) && (Rank3 >= 11)`. 
@@ -29,28 +29,28 @@ Quyết định của AI là sự kết hợp giữa mô hình toán học và b
 Hàm Sigmoid được dùng để ánh xạ điểm số sang một thang đo cảm xúc từ 0 (cực kỳ không hài lòng) đến 1 (cực kỳ hài lòng).
 
 **Công thức:**
-`S = 1 / (1 + exp(-k * (score - midpoint)))`
+$$S = \frac{1}{1 + e^{-k(\text{score} - \text{midpoint})}}$$
 
 Trong đó:
 - **`k` (Steepness)**: Độ nhạy cảm. Shark (2.5), Maniac (1.0), Nit (0.5).
 - **`midpoint`**: Điểm kỳ vọng (điểm mà tại đó Satisfaction = 0.5).
-  - Công thức: `midpoint = 5.0 - (confidenceLevel * 2.0)`
-  - Ý nghĩa: `confidenceLevel` càng cao thì `midpoint` càng thấp (AI tham vọng hơn, cần điểm cao hơn để thỏa mãn).
+  - Công thức: $midpoint = 5.0 - (C \cdot 2.0)$
+  - Ý nghĩa: $C$ (Confidence Level) càng cao thì $midpoint$ càng thấp (AI tham vọng hơn, cần điểm cao hơn để thỏa mãn).
 
 ### 2.2. Chỉ số Thèm muốn (Trade Desire - D)
 Quy định mức độ "nóng lòng" muốn đổi bài của người chơi qua các lượt (`swapTurn`).
-- **Lượt 1**: `D = (1.0 - S) * aggression`
-- **Lượt 2+**: `D_new = D_old + 0.15 * (1.0 - S) * aggression`
-- **Yếu tố Tham lam (Greed)**: Nếu `confidenceLevel > 0.7` và `S > 0.5`, `D` sẽ cộng thêm `0.1 * S`.
+- **Lượt 1**: $D = (1.0 - S) \cdot A$
+- **Lượt 2+**: $D_{new} = D_{old} + 0.15 \cdot (1.0 - S) \cdot A$
+- **Yếu tố Tham lam (Greed)**: Nếu $C > 0.7$ và $S > 0.5$, $D$ sẽ cộng thêm $0.1 \cdot S$.
 
 ### 2.3. Xác suất Quyết định cuối cùng (Final Probability - P)
 AI cân bằng giữa lý trí và cảm xúc:
 
-`P_final = (skillLevel * P_rational) + ((1.0 - skillLevel) * P_psych)`
+$P_{final} = (\text{Skill} \cdot P_{rational}) + ((1.0 - \text{Skill}) \cdot P_{psych})$
 
 **Thành phần:**
-1.  **P_rational (Lý trí)**: `1.0 - S`. Quyết định dựa trên xác suất cải thiện điểm số thuần túy.
-2.  **P_psych (Tâm lý)**: `0.5 * (1.0 - S) + 0.5 * D + (confidenceLevel * S * 0.3)`. Phản ánh sự cay cú và tham lam bộc phát.
+1.  **P_rational (Lý trí)**: $1.0 - S$. Quyết định dựa trên xác suất cải thiện điểm số thuần túy.
+2.  **P_psych (Tâm lý)**: $0.5 \cdot (1.0 - S) + 0.5 \cdot D + (C \cdot S \cdot 0.3)$. Phản ánh sự cay cú và tham lam bộc phát.
 
 ---
 

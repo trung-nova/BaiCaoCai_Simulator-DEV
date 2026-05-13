@@ -47,7 +47,7 @@ Chỉ số $D$ mô tả động lực thôi thúc AI thực hiện hành động
 **Trong đó:**
 - **$A$ (Aggression)**: $0.5 + (0.5 \cdot C)$.
 - **$Greed$ (Sự tham lam)**: Chỉ kích hoạt khi bài đã tốt nhưng người chơi vẫn muốn tối ưu thêm.
-  $$Greed = \begin{cases} 0.1 \cdot S & \text{nếu } C > 0.7 \text{ và } S > 0.5 \ 0 & \text{trường hợp khác} \end{cases}$$
+  $$Greed = \begin{cases} 0.1 \cdot S & \text{nếu } C > 0.7 \text{ và } S > 0.5 \\ 0 & \text{trường hợp khác} \end{cases}$$
 
 ---
 
@@ -87,7 +87,7 @@ Khi $Losses \geq 5$ hoặc $Balance < 0.7 \cdot Balance_{initial}$:
 ## 5. Lợi thế Nhà cái (House Edge)
 
 Lợi thế toán học của sàn được thiết lập qua quy tắc so sánh không đối xứng:
-$$Result = \begin{cases} Player\ Wins & \text{if } Score_P > Score_D \\ Dealer\ Wins & \text{if } Score_P \leq Score_D \end{cases}$$
+$$Result = \begin{cases} \text{Player Wins} & \text{if } Score_P > Score_D \\ \text{Dealer Wins} & \text{if } Score_P \leq Score_D \end{cases}$$
 
 Về mặt xác suất, trong một ván đấu ngẫu nhiên:
 - $P(P > D) \approx 45\%$
