@@ -8,6 +8,12 @@
 ## 📌 Tổng quan
 **Bài Cào Cái Simulator** là một hệ thống mô phỏng Monte Carlo hiệu năng cao, được thiết kế để nghiên cứu hành vi ra quyết định rủi ro trong trò chơi Bài Cào. Hệ thống sử dụng mô hình toán học (Sigmoid Utility Functions) để giả lập tâm lý người chơi, hỗ trợ việc phân tích dữ liệu quy mô lớn cho các bài toán kinh tế lượng và lý thuyết trò chơi.
 
+### 🌟 Tính năng Nghiên cứu Trọng tâm
+*   **Behavioral AI Modeling**: Sử dụng hàm **Logistic Sigmoid** và **Dual-Process Theory** để mô phỏng sự hài lòng, thèm muốn và sự bộc phát cảm xúc (TILT).
+*   **Deterministic Simulation**: Cơ chế **Seeding** phân cấp giúp tái lập chính xác 100% mọi kịch bản mô phỏng để kiểm chứng khoa học.
+*   **High-Frequency Data Pipeline**: Xuất dữ liệu đa kênh (CSV, SQLite) với tốc độ cao, sẵn sàng cho phân tích Big Data (Python/Pandas/R).
+*   **Archetype System**: Phân loại đối tượng AI thành các nhóm cá tính (Shark, Maniac, Nit) dựa trên phân phối chuẩn (GMM).
+
 ---
 
 ## 📂 Documentation Portal (Cổng thông tin tài liệu)
