@@ -92,5 +92,17 @@ Tài liệu này tổng hợp mọi ngóc ngách kỹ thuật, từ những dòn
     *   "Toán học lý thuyết chỉ tính được các ván bài tĩnh. Khi đưa vào yếu tố **Hành vi (Đổi bài dựa trên tâm lý)** và **Tâm lý tích lũy (TILT)**, hệ thống trở thành một **Hệ thống thích nghi phức hợp (Complex Adaptive System)**. Lúc này, công thức giải tích (Analytical Solution) không còn khả thi, và **Mô phỏng Monte Carlo** là công cụ duy nhất để khám phá các hiện tượng mới nổi (Emergent Behaviors)."
 
 ---
-> [!TIP]
-> **Tư duy phản biện:** Nếu giảng viên bắt bẻ về một lỗi nhỏ, hãy mỉm cười và nói: *"Đây là một biến số nhiễu (Noise) mà em đã lường trước để kiểm tra tính ổn định của thuật toán."*
+
+## 📚 PHẦN V: NGUỒN GỐC HỌC THUẬT & THAM CHIẾU (ACADEMIC ORIGINS)
+
+### 11. Các công thức toán học này lấy từ đâu?
+*   **Câu hỏi:** *"Cơ sở khoa học nào để em đưa ra các công thức này, hay em tự nghĩ ra?"*
+*   **Trả lời (Chuyên gia):** 
+    1.  **Hàm Sigmoid**: Dựa trên **Lý thuyết Hữu dụng biên (Utility Theory)** trong kinh tế học và các mô hình xác suất trong **Tâm lý học thực nghiệm (Psychometrics)**. Nó mô phỏng cách con người phản ứng với các ngưỡng thỏa mãn.
+    2.  **Mô hình ra quyết định**: Dựa trên **Lý thuyết Dual-Process (Hệ thống 1 & 2)** của **Daniel Kahneman** (Nobel Kinh tế 2002). Hệ thống kết hợp giữa tính toán xác suất lý trí và các xung động tâm lý tích lũy.
+    3.  **Phân phối Kỹ năng**: Dựa trên **Gaussian Mixture Model (GMM)** trong thống kê, cho phép mô phỏng sự phân hóa đa tầng lớp trong một quần thể phức tạp.
+    4.  **Cơ chế Seeding**: Dựa trên nguyên lý **Tính tất định của thuật toán Mersenne Twister**, đảm bảo mọi kết quả đều có tính kiểm chứng khoa học (Scientific Verifiability).
+    5.  **Ra quyết định**: Dựa trên triết lý **Hữu dụng hữu hạn (Bounded Rationality)** của **Herbert Simon** (Nobel Kinh tế 1978), thừa nhận rằng AI (và con người) không bao giờ chơi tối ưu 100% mà bị chi phối bởi các giới hạn nội tại.
+
+> [!IMPORTANT]
+> **Key Message:** Dự án không chỉ là lập trình trò chơi, mà là một **Phòng thí nghiệm Kinh tế học hành vi (Behavioral Economics Lab)** thu nhỏ, nơi các quy tắc OOP được dùng để kiểm chứng các lý thuyết khoa học xã hội.
