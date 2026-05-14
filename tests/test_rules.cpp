@@ -1,5 +1,5 @@
-#include "Card.h"
-#include "Player.h"
+#include "../include/Card.h"
+#include "../include/Player.h"
 #include <iostream>
 #include <cassert>
 #include <vector>
@@ -12,7 +12,7 @@ void testScoring() {
     Card c3(Suit::CLUBS, Rank::JACK); // 0
     
     // Manual scoring logic test
-    int score = (c1.getScore() + c2.getScore() + c3.getScore()) % 10;
+    int score = (c1.getModuloValue() + c2.getModuloValue() + c3.getModuloValue()) % 10;
     assert(score == 3);
     std::cout << " OK\n";
 }
@@ -43,3 +43,4 @@ int main() {
     }
     return 0;
 }
+

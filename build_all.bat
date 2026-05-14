@@ -2,7 +2,7 @@
 SETLOCAL EnableDelayedExpansion
 
 :: --- CONFIGURATION ---
-SET "BIN_CSV=game.exe"
+SET "BIN_CSV=game_sql.exe"
 SET "CC=g++"
 SET "FLAGS=-std=c++17 -I include -I . -O3 -static"
 

@@ -9,33 +9,16 @@ import io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 # Configuration
-EXE_PATH = r"d:\Tài liệu học tập\OOP\game_sql.exe"
-DATA_DIR = r"d:\Tài liệu học tập\OOP\data"
-CONFIG_PATH = r"d:\Tài liệu học tập\OOP\config.ini"
+EXE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "game_sql.exe")
+DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data")
+CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "config.ini")
 
 def run_simulation(rounds=10, seed=12345):
     """Runs the simulation with a fixed number of rounds and seed."""
     print(f"--- Running Simulation Test (Rounds: {rounds}, Seed: {seed}) ---")
     
-    # In a real scenario, we might want to pass these as CLI args if the exe supports it.
-    # For now, we assume it reads from config.ini or takes inputs via stdin.
-    # If the program is interactive, we use stdin.
-    
-    # Simulation input sequence for Mode 1 (Standard Simulation)
-    # 1 (Choice 1)
-    # {seed} (Seed)
-    # 1 (Submode: Persistent)
-    # 5 (nP)
-    # 0.2 (minS)
-    # 0.8 (maxS)
-    # 50 (conc)
-    # 30 (sP)
-    # 30 (mP)
-    # y (Export)
-    # {rounds} (numR)
-    # 2 (Menu)
-    # 0 (Exit)
-    input_str = f"1\n{seed}\n1\n5\n0.2\n0.8\n50\n30\n30\ny\n{rounds}\n2\n0\n"
+    # Sequence: 1 (Standard), {seed}, 1 (Persistent), 5 (Total), 1 (Shark), 1 (Maniac), 1 (Nit), y (Export), {rounds}, 2 (Menu), 0 (Exit)
+    input_str = f"1\n{seed}\n1\n5\n1\n1\n1\ny\n{rounds}\n2\n0\n"
     
     try:
         process = subprocess.Popen(
