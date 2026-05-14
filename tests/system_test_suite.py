@@ -1,7 +1,6 @@
 import os
 import subprocess
 import time
-import sqlite3
 import sys
 import io
 
@@ -9,7 +8,7 @@ import io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 # Configuration
-EXE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "game_sql.exe")
+EXE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "game.exe")
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data")
 CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "config.ini")
 
@@ -17,7 +16,18 @@ def run_simulation(rounds=10, seed=12345):
     """Runs the simulation with a fixed number of rounds and seed."""
     print(f"--- Running Simulation Test (Rounds: {rounds}, Seed: {seed}) ---")
     
-    # Sequence: 1 (Standard), {seed}, 1 (Persistent), 5 (Total), 1 (Shark), 1 (Maniac), 1 (Nit), y (Export), {rounds}, 2 (Menu), 0 (Exit)
+    # Input sequence:
+    # 1: Standard Simulation
+    # {seed}: Seed
+    # 1: Persistent mode
+    # 5: Total players
+    # 1: Shark count
+    # 1: Maniac count
+    # 1: Nit count
+    # y: Export data
+    # {rounds}: Number of rounds
+    # 2: Back to menu
+    # 0: Exit
     input_str = f"1\n{seed}\n1\n5\n1\n1\n1\ny\n{rounds}\n2\n0\n"
     
     try:
@@ -36,63 +46,26 @@ def run_simulation(rounds=10, seed=12345):
 
 def verify_outputs():
     """Checks if the required output files exist and are not empty."""
-    print("\n--- Verifying Output Files ---")
+    print("\n--- Verifying Output Files (CSV) ---")
     
-    # Find the latest files in data dir
+    if not os.path.exists(DATA_DIR):
+        print("  [ERROR] Data directory missing.")
+        return False
+
+    # Find files in data dir
     files = os.listdir(DATA_DIR)
     csv_files = [f for f in files if f.endswith('.csv')]
-    db_files = [f for f in files if f.endswith('.db')]
-    log_files = [f for f in files if f.endswith('.log')]
     
-    results = {
-        "csv_count": len(csv_files),
-        "db_exists": "simulation_results.db" in files or len(db_files) > 0,
-        "logs_found": len(log_files) > 0
-    }
+    print(f"  Found {len(csv_files)} CSV files.")
     
-    for k, v in results.items():
-        status = "PASSED" if v else "FAILED"
-        print(f"  {k}: {v} [{status}]")
+    # Expecting at least 3 CSVs (swap, rounds, history)
+    success = len(csv_files) >= 3
+    if success:
+        print("  [PASS] All expected CSV reports detected.")
+    else:
+        print("  [FAIL] Missing CSV reports.")
     
-    return results
-
-def verify_database():
-    """Connects to SQLite and checks for data consistency."""
-    print("\n--- Verifying SQLite Database Integrity ---")
-    db_path = os.path.join(DATA_DIR, "simulation_results.db")
-    if not os.path.exists(db_path):
-        # Check if there's any other .db file (sometimes timestamped)
-        db_files = [f for f in os.listdir(DATA_DIR) if f.endswith('.db')]
-        if db_files:
-            db_path = os.path.join(DATA_DIR, db_files[0])
-        else:
-            print("  [ERROR] Database file not found!")
-            return False
-
-    try:
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-        
-        # Check rounds table
-        cursor.execute("SELECT COUNT(*) FROM rounds")
-        round_count = cursor.fetchone()[0]
-        print(f"  Total Rounds in DB: {round_count}")
-        
-        # Check swaps table
-        cursor.execute("SELECT COUNT(*) FROM swaps")
-        swap_count = cursor.fetchone()[0]
-        print(f"  Total Swap Decisions in DB: {swap_count}")
-        
-        # Check for Ba Tien logic in data
-        cursor.execute("SELECT COUNT(*) FROM swaps WHERE score_after = 10")
-        ba_tien_count = cursor.fetchone()[0]
-        print(f"  Ba Tien completions detected: {ba_tien_count}")
-        
-        conn.close()
-        return round_count > 0
-    except Exception as e:
-        print(f"  [ERROR] SQLite Verification failed: {e}")
-        return False
+    return success
 
 def main():
     print("====================================================")
@@ -112,22 +85,15 @@ def main():
     
     if stdout:
         print(f"[INFO] Simulation completed in {end_time - start_time:.2f}s")
-        if "ALL SIMULATION DATA SAVED" in stdout or "Report generated" in stdout:
-            print("  Status: Program reported success.")
-        else:
-            print("  Warning: Success message not detected in stdout.")
     else:
         print(f"[ERROR] Simulation failed to run: {stderr}")
 
     # 3. Verify Files
-    file_results = verify_outputs()
+    csv_ok = verify_outputs()
     
-    # 4. Verify DB
-    db_ok = verify_database()
-    
-    # 5. Summary
+    # 4. Summary
     print("\n" + "="*52)
-    if file_results["db_exists"] and db_ok:
+    if csv_ok:
         print("         FINAL STATUS: ALL SYSTEMS GO (PASS)        ")
     else:
         print("         FINAL STATUS: SYSTEM ISSUES DETECTED (FAIL) ")
