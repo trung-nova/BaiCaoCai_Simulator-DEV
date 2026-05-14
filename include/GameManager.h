@@ -8,6 +8,9 @@
 #include "Deck.h"
 #include "GameState.h"
 #include <fstream>
+#ifdef USE_SQLITE
+#include "DatabaseManager.h"
+#endif
 
 struct RoundRecord {
     int roundNum;
@@ -76,6 +79,9 @@ public:
     bool loadConfig(const std::string& filename);
     void displayArchetypeConfigs();
 
+#ifdef USE_SQLITE
+    DatabaseManager db;
+#endif
 };
 
 #endif // GAMEMANAGER_H
