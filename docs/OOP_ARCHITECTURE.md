@@ -191,3 +191,34 @@ Trong thiết kế này, Kế thừa và Đa hình không chỉ là kỹ thuật
     - **Đa hình** cho phép sự linh động (Flexibility) trong phân cấp đó.
     - Kết quả là một hệ thống **Loose Coupling** (Ghép nối lỏng): Các thành phần phụ thuộc vào các giao diện trừu tượng thay vì phụ thuộc vào các lớp cụ thể.
 
+---
+
+## 7. Sơ đồ Rút gọn cho Thuyết trình (Simplified Presentation Diagram)
+
+Dưới đây là phiên bản lược bỏ các chi tiết thuộc tính, tập trung vào mối quan hệ **Kế thừa (Inheritance)** và **Đa hình (Polymorphism)**, rất phù hợp để đưa vào Slide thuyết trình.
+
+```mermaid
+classDiagram
+    class GameManager { +players, +currentState, +deck }
+    
+    class GameState { <<interface>> +handle()* }
+    class ConcreteStates { Betting, Dealing, Trading, Eval }
+    
+    class Player { <<abstract>> +wantsToTrade()* }
+    class AIPlayer { +wantsToTrade() }
+    class HumanPlayer { +wantsToTrade() }
+
+    GameState <|-- ConcreteStates : "Inheritance (State Pattern)"
+    Player <|-- AIPlayer : "Inheritance (Polymorphism)"
+    Player <|-- HumanPlayer : "Inheritance (Polymorphism)"
+    
+    GameManager *-- GameState : Strategy/State
+    GameManager *-- Player : Aggregation (1..N)
+    GameManager o-- Deck : Uses
+    Player *-- Card : Holds (3)
+```
+
+## 8. Kết luận về Kiến trúc
+Kiến trúc này đạt được sự cân bằng giữa **Hiệu năng (C++ thuần)** và **Khả năng Bảo trì (OOP)**. Nó không chỉ là một trò chơi, mà là một khung sườn (Framework) có khả năng mô phỏng bất kỳ kịch bản cá cược đa tác nhân (Multi-agent) nào.
+
+
