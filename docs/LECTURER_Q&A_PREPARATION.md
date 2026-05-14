@@ -1,108 +1,45 @@
-# SIÊU TÀI LIỆU PHẢN BIỆN: CHIẾN LƯỢC BẢO VỆ ĐỒ ÁN (OVERTHINKING EDITION)
-> **Dự án: Bài Cào Cái Simulator v3.0**
-> **Học phần: Lập trình hướng đối tượng (OOP)**
+# CHIẾN LƯỢC PHẢN BIỆN: GIẢI ĐÁP CÁC CÂU HỎI HÓA (LECTURER Q&A)
 
-Tài liệu này tổng hợp mọi ngóc ngách kỹ thuật, từ những dòng code nhỏ nhất đến các hệ quả vĩ mô của mô hình, giúp bạn làm chủ hoàn toàn buổi bảo vệ.
+Tài liệu này chuẩn bị cho bạn những câu trả lời "vừa lòng" nhất cho giảng viên, tập trung vào các quyết định kỹ thuật quan trọng.
 
 ---
 
-## 🏗️ PHẦN I: KIẾN TRÚC HƯỚNG ĐỐI TƯỢNG (OOP DEEP DIVE)
+## 🏗️ KIẾN TRÚC & OOP
 
-### 1. Tại sao dùng State Pattern kết hợp với Factory?
-*   **Câu hỏi:** *"Cơ chế chuyển trạng thái của em hoạt động như thế nào? Tại sao lại cần `StateFactory`?"*
-*   **Trả lời (Overthinking):** 
-    *   "Hệ thống sử dụng **State Pattern** để tách biệt logic. Tuy nhiên, để giảm sự phụ thuộc vòng (Circular Dependency) giữa các trạng thái, em dùng `StateFactory` làm trung gian."
-    *   "Khi `BettingState` kết thúc, nó không gọi `new DealingState()` mà yêu cầu Factory cung cấp một `unique_ptr<DealingState>`. Điều này giúp `BettingState` không cần 'biết' về sự tồn tại của các lớp trạng thái khác, tuân thủ nguyên lý **Dependency Inversion**."
-    *   "Vòng lặp trong `playRound` kiểm tra `while (currentState != nullptr)`. Khi `EvalState` chuyển trạng thái về `nullptr`, ván đấu kết thúc một cách an toàn mà không gây tràn bộ nhớ (Stack Overflow) do đệ quy."
+### 1. Tại sao em lại chuyển từ SQLite sang CSV?
+- **Câu trả lời**: 
+    - "Để tăng tính **Minh bạch (Transparency)** và **Di động (Portability)** của dữ liệu nghiên cứu. CSV cho phép giảng viên hoặc người dùng kiểm tra dữ liệu ngay lập tức bằng Excel hoặc Notepad mà không cần cài đặt trình quản lý Database."
+    - "Việc sử dụng CSV cũng giúp loại bỏ các phụ thuộc thư viện bên ngoài (External Dependencies), giúp dự án có thể build và chạy trên bất kỳ máy tính nào chỉ với trình biên dịch C++ chuẩn."
 
-### 2. Tính Đa hình (Polymorphism) và Liên kết động (Dynamic Binding)
-*   **Câu hỏi:** *"Lớp `Player` là lớp trừu tượng (Abstract Class). Việc gọi `wantsToTrade` thực sự diễn ra như thế nào?"*
-*   **Trả lời:** 
-    *   "Lớp `Player` chứa hàm thuần ảo `virtual wantsToTrade(...) = 0`, khiến nó trở thành một interface. Tại thời điểm chạy (Runtime), khi `GameManager` gọi hàm này thông qua danh sách `std::vector<shared_ptr<Player>>`, C++ sẽ tra cứu bảng phương thức ảo (**VTable**) của đối tượng thực tế (`AIPlayer` hoặc `HumanPlayer`) để thực thi."
-    *   "Điều này cho phép hệ thống vận hành mà không cần quan tâm người chơi đó là người hay máy, minh chứng cho sức mạnh của tính **Đa hình**."
+### 2. Em xử lý Archetype bằng String thay vì Enum, liệu có làm chậm chương trình?
+- **Câu trả lời**: 
+    - "Về mặt hiệu năng, việc tra cứu trong `std::map<std::string, ...>` tốn thời gian hơn `enum` một chút, nhưng trong bối cảnh mô phỏng xã hội, tính **Linh hoạt (Flexibility)** quan trọng hơn."
+    - "Cơ chế này cho phép hệ thống trở nên **Data-Driven** hoàn toàn. Chúng ta có thể thêm hàng trăm loại AI mới chỉ bằng cách sửa file cấu hình mà không cần biên dịch lại mã nguồn. Đây là minh chứng cho nguyên lý **Open/Closed** trong OOP."
 
-### 3. Smart Pointers và Quyền sở hữu (Ownership Theory)
-*   **Câu hỏi:** *"Tại sao em không dùng `shared_ptr` cho tất cả mọi thứ cho tiện?"*
-*   **Trả lời:** 
-    *   "Nếu dùng `shared_ptr` bừa bãi, ta sẽ gặp vấn đề về **Circular Reference** (tham chiếu vòng), khiến đối tượng không bao giờ được giải phóng. `std::unique_ptr` trong dự án thể hiện **quyền sở hữu duy nhất** (Single Ownership). `GameManager` sở hữu trạng thái, khi nó chết, trạng thái phải chết theo. Dùng đúng loại con trỏ thể hiện tư duy quản lý tài nguyên nghiêm ngặt."
+### 3. State Pattern giúp gì cho việc mở rộng luật chơi?
+- **Câu trả lời**: 
+    - "Nếu muốn thêm luật chơi mới như 'Vòng cược bổ sung' hoặc 'Gấp đôi tiền cược', em chỉ cần tạo một lớp kế thừa từ `GameState` và chèn vào luồng chuyển trạng thái hiện tại. Logic của các giai đoạn cũ hoàn toàn không bị ảnh hưởng."
 
 ---
 
-## 🧠 PHẦN II: TOÁN HỌC HÀNH VI & NGHỊCH LÝ (BEHAVIORAL MATH)
+## 🧠 TOÁN HỌC & AI
 
-### 4. Giải mã Nghịch lý Kỹ năng (The "Over-Optimized" Failure)
-*   **Câu hỏi:** *"Em giải thích sâu hơn về việc tại sao Shark lại thua lỗ nặng?"*
-*   **Trả lời (Overthinking):** 
-    *   "Đó là hiện tượng **Local Optimization vs Global Strategy**. Shark được tối ưu để săn Ba Tiên (Thắng tuyệt đối). Trong toán học, đây là một biến cố có phân phối đuôi dài (Fat-tail distribution). Shark vứt bỏ tay bài 8-9 điểm (EV cao nhưng không tuyệt đối) để đổi lấy xác suất thắng tuyệt đối nhưng cực thấp."
-    *   "Trong một trò chơi có phí (Ante), việc bỏ lỡ các trận thắng nhỏ để đợi trận thắng lớn thường dẫn đến việc **vốn (Bankroll) bị cạn kiệt trước khi biến cố thắng lớn kịp xảy ra**. Đây là minh chứng cho việc lý trí thái quá không đi kèm quản trị rủi ro sẽ dẫn đến thảm họa."
+### 4. Tại sao AI của em lại có lúc đưa ra quyết định sai lầm (Sub-optimal)?
+- **Câu trả lời**: 
+    - "Đó là chủ ý thiết kế để mô phỏng **Tính hữu dụng hữu hạn (Bounded Rationality)** của con người. Con người không phải là máy tính tối ưu 100%. Bằng cách sử dụng xác suất kết hợp với hàm Sigmoid, AI sẽ có những 'sai số' hành vi, làm cho mô hình mô phỏng trở nên thực tế hơn."
 
-### 5. Box-Muller Transform và Phân phối Gauss
-*   **Câu hỏi:** *"Làm sao em tạo ra được chỉ số Skill của AI theo đường cong hình chuông?"*
-*   **Trả lời:** 
-    *   "Máy tính chỉ sinh ra số ngẫu nhiên đều (Uniform Distribution). Em sử dụng thuật toán **Box-Muller** để biến đổi hai số ngẫu nhiên đều $(u_1, u_2)$ thành một số thuộc phân phối chuẩn $\mathcal{N}(0, 1)$."
-    *   "Sau đó, em ánh xạ giá trị này vào `min_skill` và `max_skill` của từng nhóm. Điều này giúp quần thể AI có sự phân hóa tự nhiên: đa số ở mức trung bình, rất ít AI cực giỏi hoặc cực kém, giống hệt thực tế xã hội."
-
-### 6. Logic "Bình thông nhau" trong thanh toán (Zero-Sum Dynamics)
-*   **Câu hỏi:** *"Điều gì xảy ra nếu Nhà cái (Dealer) phá sản?"*
-*   **Trả lời:** 
-    *   "Hệ thống triển khai logic **Priority Payout**. Nhà cái sẽ trả tiền cho những người thắng theo thứ tự trong danh sách cho đến khi hết sạch tiền. Những người thắng sau sẽ nhận được `std::min(cược, số dư còn lại của Cái)`. Điều này mô phỏng rủi ro tín dụng khi đối đầu với một Nhà cái đang 'cháy túi'."
+### 5. Cơ chế TILT (Cay cú) hoạt động như thế nào?
+- **Câu trả lời**: 
+    - "Đây là một **State-based behavior**. Khi các điều kiện về tài chính hoặc lịch sử thua cuộc bị vi phạm, thuộc tính `isTilt` của Player sẽ kích hoạt. Lúc này, các tham số đầu vào của hàm Sigmoid bị bẻ cong (giảm Skill, tăng Confidence ảo), tạo ra các quyết định liều lĩnh - một hiện tượng rất phổ biến trong cờ bạc."
 
 ---
 
-## 💾 PHẦN III: DỮ LIỆU LỚN & HỆ THỐNG (SYSTEM & BIG DATA)
+## 💾 HỆ THỐNG & DỮ LIỆU
 
-### 7. Tại sao chọn C++17 cho dự án mô phỏng?
-*   **Câu hỏi:** *"Ngôn ngữ khác như Python có thể làm việc này dễ hơn, tại sao em chọn C++?"*
-*   **Trả lời:** 
-    *   **Hiệu năng Monte Carlo**: Mô phỏng hàng triệu ván đấu yêu cầu hàng tỷ phép tính số thực và gọi hàm ảo. C++ có tốc độ thực thi gần với mã máy nhất.
-    *   **C++17 Features**: Em sử dụng `std::filesystem` để quản lý thư mục `data/`, `std::optional` (trong các bản thảo) và cấu trúc `structured bindings` để code sạch và an toàn hơn.
-    *   **Memory Footprint**: C++ cho phép kiểm soát từng byte. Trong khi Python tốn hàng GB RAM cho 1 triệu đối tượng, C++ chỉ tốn vài MB nhờ cơ chế **Recycling Object**.
+### 6. Làm sao em đảm bảo dữ liệu giữa 4 file CSV luôn khớp nhau?
+- **Câu trả lời**: 
+    - "Toàn bộ việc ghi dữ liệu được quản lý tập trung bởi lớp `GameManager`. Mọi thông tin đều được đóng gói trong các tệp CSV dùng chung một **Timestamp** duy nhất cho mỗi phiên chạy, đảm bảo tính nhất quán (Consistency) tuyệt đối khi nạp vào các công cụ phân tích dữ liệu."
 
-### 8. SQLite ACID và Batch Transactions
-*   **Câu hỏi:** *"Ghi dữ liệu vào SQLite có đảm bảo an toàn nếu chương trình bị tắt đột ngột?"*
-*   **Trả lời:** 
-    *   "SQLite tuân thủ nguyên lý **ACID**. Bằng cách sử dụng `BEGIN TRANSACTION`, toàn bộ 1000 ván đấu sẽ được ghi vào file journal. Nếu máy bị tắt giữa chừng, SQLite sẽ tự động Rollback (hủy bỏ) các dữ liệu dở dang khi mở lại, đảm bảo Database không bao giờ bị 'corrupt' (hỏng)."
-
-### 9. ANSI Escape Codes & UX
-*   **Câu hỏi:** *"Tại sao em lại tốn thời gian làm màu sắc trong Terminal?"*
-*   **Trả lời:** 
-    *   "Đây là vấn đề **Developer Experience (DX)** và khả năng giám sát. Khi chạy Log Mode, màu sắc giúp phân biệt ngay lập tức đâu là thông tin hệ thống (Cyan), đâu là Nhà cái (Yellow), và đâu là lỗi (Red). Nó giúp việc gỡ lỗi logic trực quan hơn rất nhiều so với văn bản thuần túy."
-
----
-
-## 🎯 PHẦN IV: TRIẾT LÝ VÀ PHẢN BIỆN CAO CẤP
-
-### 10. Tại sao dùng Quyết định Xác suất (Stochastic) thay vì Quyết định Tất định (Deterministic)?
-*   **Câu hỏi:** *"Tại sao em không dùng các lệnh `if (score < 5) swap()` mà lại phải dùng số ngẫu nhiên để quyết định?"*
-*   **Giải đáp (Overthinking):** 
-    1.  **Mô phỏng Sự không chắc chắn (Uncertainty)**: Con người không phải là thuật toán tĩnh. Một người chơi có thể đổi bài ở 5 điểm trong ván này nhưng lại giữ ở ván sau do cảm giác bồn chồn hoặc hy vọng hão huyền. Số ngẫu nhiên đóng vai trò là "biến số tự do" mô phỏng sự không nhất quán này.
-    2.  **Lý thuyết Hữu dụng hữu hạn (Bounded Rationality)**: Theo Herbert Simon, con người bị giới hạn bởi năng lực tính toán. Việc dùng xác suất giúp tạo ra các "sai số" trong quyết định, khiến AI trông "người" hơn.
-    3.  **Tránh hội tụ hành vi**: Nếu dùng lệnh `if` cứng, hàng triệu AI sẽ hành động y hệt nhau, làm mất đi tính đa dạng của dữ liệu quần thể. Số ngẫu nhiên đảm bảo rằng ngay cả trong cùng một hoàn cảnh, mỗi AI vẫn có một "số phận" riêng biệt.
-    4.  **Soft Thresholding**: Thay vì một ranh giới cứng tại 5 điểm, số ngẫu nhiên kết hợp với hàm Sigmoid cho phép AI hoạt động trong "vùng xám" xác suất, tạo ra sự mượt mà trong mô hình hành vi.
-
-### 11. Tại sao dùng hàm Sigmoid thay vì Machine Learning?
-*   **Câu hỏi:** *"Tại sao em không dùng Deep Learning cho AI tự học?"*
-*   **Trả lời:**
-    *   **Explainability (Tính giải thích)**: Giảng viên có thể nhìn vào tham số $k$ và $\gamma$ để hiểu tại sao AI quyết định như vậy. ML là một "hộp đen" không thể giải trình logic trong báo cáo học thuật.
-    *   **Diversity (Tính đa dạng)**: ML luôn tìm cách thắng bằng mọi giá nên các AI sẽ có hành vi giống hệt nhau. Hàm Sigmoid cho phép ta tạo ra các cá tính đa dạng (Shark, Maniac, Nit) để mô phỏng một xã hội thu nhỏ.
-
-### 12. Tại sao mô phỏng lại quan trọng hơn công thức toán học?
-*   **Câu hỏi:** *"Tại sao không dùng công thức tổ hợp để tính luôn tỉ lệ thắng cho nhanh?"*
-*   **Trả lời (Chốt hạ):** 
-    *   "Toán học lý thuyết chỉ tính được các ván bài tĩnh. Khi đưa vào yếu tố **Hành vi (Đổi bài dựa trên tâm lý)** và **Tâm lý tích lũy (TILT)**, hệ thống trở thành một **Hệ thống thích nghi phức hợp (Complex Adaptive System)**. Lúc này, công thức giải tích (Analytical Solution) không còn khả thi, và **Mô phỏng Monte Carlo** là công cụ duy nhất để khám phá các hiện tượng mới nổi (Emergent Behaviors)."
-
----
-
-## 📚 PHẦN V: NGUỒN GỐC HỌC THUẬT & THAM CHIẾU (ACADEMIC ORIGINS)
-
-### 11. Các công thức toán học này lấy từ đâu?
-*   **Câu hỏi:** *"Cơ sở khoa học nào để em đưa ra các công thức này, hay em tự nghĩ ra?"*
-*   **Trả lời (Chuyên gia):** 
-    1.  **Hàm Sigmoid**: Dựa trên **Lý thuyết Hữu dụng biên (Utility Theory)** trong kinh tế học và các mô hình xác suất trong **Tâm lý học thực nghiệm (Psychometrics)**. Nó mô phỏng cách con người phản ứng với các ngưỡng thỏa mãn.
-    2.  **Mô hình ra quyết định**: Dựa trên **Lý thuyết Dual-Process (Hệ thống 1 & 2)** của **Daniel Kahneman** (Nobel Kinh tế 2002). Hệ thống kết hợp giữa tính toán xác suất lý trí và các xung động tâm lý tích lũy.
-    3.  **Phân phối Kỹ năng**: Dựa trên **Gaussian Mixture Model (GMM)** trong thống kê, cho phép mô phỏng sự phân hóa đa tầng lớp trong một quần thể phức tạp.
-    4.  **Cơ chế Seeding**: Dựa trên nguyên lý **Tính tất định của thuật toán Mersenne Twister**, đảm bảo mọi kết quả đều có tính kiểm chứng khoa học (Scientific Verifiability).
-    5.  **Ra quyết định**: Dựa trên triết lý **Hữu dụng hữu hạn (Bounded Rationality)** của **Herbert Simon** (Nobel Kinh tế 1978), thừa nhận rằng AI (và con người) không bao giờ chơi tối ưu 100% mà bị chi phối bởi các giới hạn nội tại.
-
-> [!IMPORTANT]
-> **Key Message:** Dự án không chỉ là lập trình trò chơi, mà là một **Phòng thí nghiệm Kinh tế học hành vi (Behavioral Economics Lab)** thu nhỏ, nơi các quy tắc OOP được dùng để kiểm chứng các lý thuyết khoa học xã hội.
+### 7. Tính tất định (Deterministic) có ý nghĩa gì trong nghiên cứu?
+- **Câu trả lời**: 
+    - "Nhờ cơ chế Seeding phân cấp, nếu giảng viên phát hiện một lỗi logic ở ván thứ 1000, em có thể nhập lại đúng Seed đó để tái hiện lại chính xác 100% tình huống đó để gỡ lỗi. Điều này cực kỳ quan trọng trong nghiên cứu khoa học để đảm bảo tính **Kiểm chứng (Verifiability)**."

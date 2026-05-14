@@ -1,13 +1,13 @@
 # TÀI LIỆU KỸ THUẬT TỔNG QUAN (TECHNICAL MASTER GUIDE)
 
-Đây là tài liệu hướng dẫn cách biên dịch, vận hành và khai thác dữ liệu từ hệ thống mô phỏng Bài Cào Cái.
+Đây là tài liệu hướng dẫn cách biên dịch, vận hành và khai thác dữ liệu từ hệ thống mô phỏng Bài Cào Cái (Phiên bản Chuẩn hóa CSV).
 
 ## 1. Cấu trúc Tài liệu (Modular Docs)
 Để tiện cho việc tra cứu, tài liệu được chia làm 4 phần:
 1. [Luật chơi (Game Rules)](./GAME_RULES.md): Cách tính điểm và phân định thắng thua.
 2. [Luồng vận hành (Game Flow)](./GAME_FLOW.md): Quy trình State Machine và các bước chia bài/đổi bài.
-3. [Phân loại AI (Player Archetypes)](./PLAYER_ARCHETYPES.md): Giải thích các tham số toán học (Sigmoid, Tilt) điều khiển AI.
-4. **Hướng dẫn Kỹ thuật (Tài liệu này)**: Build app và cấu trúc dữ liệu.
+3. [Phân loại AI (Player Archetypes)](./PLAYER_ARCHETYPES.md): Giải thích các tham số toán học (Sigmoid, Tilt) và cơ chế Archetype động.
+4. **Hướng dẫn Kỹ thuật (Tài liệu này)**: Build app và cấu trúc dữ liệu CSV.
 
 ---
 
@@ -15,104 +15,59 @@
 
 ### 2.1. Yêu cầu hệ thống
 - **Compiler**: GCC (MinGW cho Windows) hỗ trợ chuẩn C++17.
-- **Thư viện**: SQLite3 (đã đính kèm sẵn trong source code).
+- **Thư viện**: Chỉ sử dụng thư viện chuẩn (Standard Library), không phụ thuộc bên ngoài.
 
 ### 2.2. Cách Build (Windows)
-Cách nhanh nhất là sử dụng file batch đã soạn sẵn:
-1. Mở Terminal/CMD tại thư mục dự án.
-2. Chạy lệnh: `.\build_all.bat`
-3. Sau khi hoàn tất, hệ thống sẽ tạo ra file `game_sql.exe`.
-
-*Nếu muốn build thủ công bằng CMake:*
-```bash
-mkdir build && cd build
-cmake ..
-cmake --build .
-```
+Sử dụng file batch để tự động hóa:
+1. Chạy lệnh: `.\build_all.bat`
+2. Hệ thống sẽ tạo ra file `game.exe`.
 
 ### 2.3. Cách Vận hành
-Chạy file `.exe` vừa tạo. Các file dữ liệu sẽ được sinh ra trong thư mục `data/` (hoặc cùng cấp với file exe).
-- Chỉnh sửa `config.ini` để thay đổi tính cách các nhóm AI trước khi chạy.
+Chạy file `game.exe`. Dữ liệu sẽ được sinh ra trong thư mục `data/`.
+- **Cấu hình**: Chỉnh sửa `config.ini` để thay đổi hoặc thêm mới các loại cá tính AI (Archetypes).
 
 ---
 
-## 3. Cấu trúc Dữ liệu cho Analysis
+## 3. Cấu trúc Dữ liệu Export (CSV)
 
-Hệ thống hỗ trợ xuất dữ liệu ra SQLite (`.db`) để truy vấn và CSV để nạp vào Pandas.
+Hệ thống tập trung xuất dữ liệu ra định dạng CSV để đảm bảo tính minh bạch và dễ dàng phân tích bằng Python (Pandas) hoặc Excel.
 
-### 3.1. SQLite Database Schema
-Bao gồm 2 bảng chính liên kết với nhau qua `round_id`:
+### 3.1. Danh mục các file báo cáo
+Mỗi phiên chạy sẽ sinh ra bộ 4 file với timestamp:
 
-#### Bảng `rounds` (Tổng quan ván đấu)
-- `id`: ID ván đấu.
-- `dealer`: Tên người làm Cái.
-- `pot`: Tổng tiền cược.
-- `winners`: Số lượng người thắng.
-- `scores`: Chuỗi tóm tắt điểm (Ví dụ: "Dealer:5 Player1:7...").
-
-#### Bảng `swaps` (Chi tiết hành vi AI)
-- `player`: Tên AI.
-- `turn`: Lượt đổi (1, 2, 3).
-- `satisfaction`: Chỉ số thỏa mãn (0-1).
-- `desire`: Chỉ số thèm muốn đổi bài.
-- `probability`: Xác suất quyết định cuối cùng.
-- `swapped`: `1` nếu đã đổi, `0` nếu giữ nguyên.
+1.  **`_ai_configs.csv`**: Lưu trữ hồ sơ tâm lý của từng AI (Skill, Confidence, Archetype).
+2.  **`_rounds_summary.csv`**: Chi tiết kết quả từng ván đấu (Nhà cái, Tổng tiền, Số người thắng, Điểm số).
+3.  **`_swap_decisions.csv`**: Ghi lại mọi quyết định đổi bài, bao gồm chỉ số Thỏa mãn (S) và Thèm muốn (D) tại thời điểm đó.
+4.  **`_bankroll_history.csv`**: Biến động tài sản của tất cả người chơi qua từng ván.
 
 ---
 
 ## 4. Gợi ý Analysis Recipe (Python)
 
-Dữ liệu có thể được nạp vào Pandas để phân tích như sau:
+Dữ liệu CSV có thể được nạp vào Pandas cực kỳ đơn giản:
 
 ```python
-import sqlite3
 import pandas as pd
+import glob
 
-# Kết nối DB
-conn = sqlite3.connect('simulation_results.db')
+# Lấy file swap gần nhất
+latest_swap = glob.glob('data/*_swap_decisions.csv')[-1]
+df_swaps = pd.read_csv(latest_swap)
 
-# Lấy dữ liệu ván đấu
-df_rounds = pd.read_sql_query("SELECT * FROM rounds", conn)
+# Tính xác suất đổi bài trung bình của nhóm SHARK
+shark_trades = df_swaps[df_swaps['PlayerName'].str.contains('SHARK')]
+avg_prob = shark_trades['Probability'].mean()
 
-# Lấy dữ liệu hành vi AI
-df_swaps = pd.read_sql_query("SELECT * FROM swaps", conn)
-
-# Tính ROI trung bình của từng nhóm AI
-# (Cần join với bankroll_history.csv)
+print(f"Average Decision Probability for Sharks: {avg_prob:.2f}")
 ```
-
-## 5. Đảm bảo Chất lượng (Quality Assurance & Testing)
-
-Để phục vụ bảo vệ đồ án và đảm bảo tính chính xác của mô hình toán học, hệ thống đã được chuẩn hóa và trang bị bộ công cụ kiểm thử tự động.
-
-### 5.1. Chuẩn hóa Cấu trúc (Technical Debt Cleanup)
-- **Standardized Includes**: Toàn bộ đường dẫn thư viện được đồng nhất bằng cách sử dụng relative paths (ví dụ: `#include "../include/Player.h"`) trong các file source (`src/`). Điều này đảm bảo tính tương thích tối đa và giải quyết triệt để lỗi "file not found" trên các IDE (như VS Code/clangd) khi xử lý cấu trúc thư mục phân lớp và các đường dẫn có ký tự đặc biệt.
-- **Header Guard Verification**: Đảm bảo không xảy ra lỗi định nghĩa chồng chéo khi mở rộng quy mô dự án.
-
-### 5.2. Hệ thống Kiểm thử (Automated Testing)
-Dự án cung cấp 2 cấp độ kiểm tra:
-
-1. **Unit Testing (Kiểm thử Logic)**:
-   - File: `tests/test_logic.cpp`
-   - Mục tiêu: Kiểm tra độ chính xác của các thuật toán: tính điểm Bài Cào, nhận diện "Ba Tiên", quyết định săn "Ba Tiên" của AI, và cơ chế Tilt.
-   - Cách chạy: `.\build_tests.bat` -> chạy `test_logic.exe`.
-
-2. **System Integration Test (Kiểm thử Hệ thống)**:
-   - File: `tests/system_test_suite.py`
-   - Mục tiêu: Chạy giả lập thực tế 20 ván, kiểm tra việc sinh file CSV, tạo SQLite DB, và tính toàn vẹn của dữ liệu xuất ra.
-   - Cách chạy: `.\build_tests.bat` sẽ tự động kích hoạt bộ test này.
 
 ---
 
-## 6. Cơ chế Seed phân cấp & Tính Tất định (Deterministic Hierarchical Seeding)
+## 5. Đảm bảo Chất lượng (Quality Assurance & Testing)
 
-Hệ thống sử dụng thuật toán **Mersenne Twister (`std::mt19937`)** để đảm bảo tính ngẫu nhiên chất lượng cao nhưng vẫn có thể tái lập hoàn toàn.
+### 5.1. Hệ thống Kiểm thử (Automated Testing)
+1. **Unit Testing**: `tests/test_logic.cpp` kiểm tra logic Bài Cào và "Ba Tiên".
+2. **Integration Test**: `tests/system_test_suite.py` giả lập 20 ván chơi và kiểm tra tính toàn vẹn của các file CSV xuất ra.
 
-### 6.1. Chuỗi nhân quả (Chain of Causality)
-Từ một **Master Seed** duy nhất, hệ thống tạo ra một chuỗi các số giả ngẫu nhiên không đổi:
-1.  **Giai đoạn Khởi tạo**: Master Seed được dùng để rút số cho các thuộc tính tĩnh (`Skill`, `Confidence`) của từng AI thông qua thuật toán **Box-Muller** (biến đổi số ngẫu nhiên đều thành phân phối chuẩn Gauss).
-2.  **Giai đoạn Lan truyền**: Mỗi đối tượng `AIPlayer` khi khởi tạo sẽ rút một số nguyên từ Master Seed để làm **Local Seed** cho bộ não riêng của mình.
-3.  **Giai đoạn Vận hành**: Local Seed này sẽ quyết định các hành vi "may rủi" trong ván đấu (như bốc bài, xác suất đổi bài).
-
-### 6.2. Ý nghĩa thực tế
-Nếu bạn chạy mô phỏng 1 triệu ván đấu với `seed=123`, và ở ván thứ 999,999 xảy ra một tình huống AI phá sản, bạn có thể **tái hiện lại đúng 100%** tình huống đó chỉ bằng cách nhập lại Seed 123. Điều này cho phép "gỡ lỗi hành vi" (behavioral debugging) – một kỹ thuật quan trọng trong nghiên cứu AI.
+### 5.2. Seeding phân cấp
+Hệ thống sử dụng Master Seed để tạo ra Local Seeds cho từng AI, đảm bảo mọi ván đấu và hành vi tâm lý đều có thể **tái lập 100%** nếu dùng chung một Seed ban đầu.
