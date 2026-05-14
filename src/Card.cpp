@@ -1,4 +1,4 @@
-#include "Card.h"
+#include "../include/Card.h"
 
 Card::Card(Suit s, Rank r) : suit(s), rank(r) {}
 

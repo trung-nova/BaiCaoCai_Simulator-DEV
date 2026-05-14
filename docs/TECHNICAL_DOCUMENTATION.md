@@ -86,7 +86,7 @@ df_swaps = pd.read_sql_query("SELECT * FROM swaps", conn)
 Để phục vụ bảo vệ đồ án và đảm bảo tính chính xác của mô hình toán học, hệ thống đã được chuẩn hóa và trang bị bộ công cụ kiểm thử tự động.
 
 ### 5.1. Chuẩn hóa Cấu trúc (Technical Debt Cleanup)
-- **Standardized Includes**: Toàn bộ đường dẫn thư viện đã được đưa về dạng project-root (ví dụ: `#include "Player.h"`) thay vì relative paths (`../include/`). Điều này giúp mã nguồn dễ dàng tương thích với mọi IDE và compiler.
+- **Standardized Includes**: Toàn bộ đường dẫn thư viện được đồng nhất bằng cách sử dụng relative paths (ví dụ: `#include "../include/Player.h"`) trong các file source (`src/`). Điều này đảm bảo tính tương thích tối đa và giải quyết triệt để lỗi "file not found" trên các IDE (như VS Code/clangd) khi xử lý cấu trúc thư mục phân lớp và các đường dẫn có ký tự đặc biệt.
 - **Header Guard Verification**: Đảm bảo không xảy ra lỗi định nghĩa chồng chéo khi mở rộng quy mô dự án.
 
 ### 5.2. Hệ thống Kiểm thử (Automated Testing)
