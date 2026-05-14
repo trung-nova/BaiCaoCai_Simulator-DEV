@@ -145,7 +145,10 @@ int main() {
         }
         ss << "\n" << "Rounds: " << numR;
         manager.simulationParams = ss.str();
-        if (manager.autoExport) manager.startStreaming();
+        if (manager.autoExport) {
+            manager.startStreaming();
+            manager.logAIConfigs();
+        }
         auto tS = std::chrono::high_resolution_clock::now();
         for (int i = 0; i < numR; ++i) {
           if (subMode == 2) { for (auto& pl : manager.players) { pl->setBalance(10000); pl->setEliminated(false); } }

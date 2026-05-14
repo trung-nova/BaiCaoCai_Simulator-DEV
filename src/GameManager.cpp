@@ -68,13 +68,15 @@ void GameManager::startStreaming() {
     streamRound.open("data/" + currentSessionTS + "_rounds_summary.csv");
     streamHistory.open("data/" + currentSessionTS + "_bankroll_history.csv");
     
+    streamAIConfigs.open("data/" + currentSessionTS + "_ai_configs.csv");
+    
     if (isMode3) {
-        streamAIConfigs.open("data/" + currentSessionTS + "_ai_configs.csv");
         streamAIConfigs << "Batch,PlayerName,Archetype,Skill,Confidence,InitialBalance\n";
         streamSwap << "Batch,RoundID,PlayerName,SwapTurn,Satisfaction,Desire,Probability,Decision,ScoreBefore,ScoreAfter,CardOut,CardIn\n";
         streamRound << "Batch,RoundNum,Dealer,Pot,WinnersCount,ScoresSummary\n";
         streamHistory << "Batch,Round,PlayerName,Balance\n";
     } else {
+        streamAIConfigs << "PlayerName,Archetype,Skill,Confidence,InitialBalance\n";
         streamSwap << "RoundID,PlayerName,SwapTurn,Satisfaction,Desire,Probability,Decision,ScoreBefore,ScoreAfter,CardOut,CardIn\n";
         streamRound << "RoundNum,Dealer,Pot,WinnersCount,ScoresSummary\n";
         streamHistory << "Round";
@@ -105,8 +107,8 @@ void GameManager::logAIConfigs() {
     if (!isStreaming) return;
     if (!streamAIConfigs.is_open()) return;
     for (const auto& p : players) {
-        streamAIConfigs << currentBatchID << ","
-                        << p->getName() << ","
+        if (isMode3) streamAIConfigs << currentBatchID << ",";
+        streamAIConfigs << p->getName() << ","
                         << p->getArchetypeString() << ","
                         << p->getSkillLevel() << ","
                         << p->getConfidenceLevel() << ","
