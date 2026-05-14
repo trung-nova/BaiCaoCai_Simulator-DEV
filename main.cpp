@@ -33,44 +33,52 @@ T safeInput(const std::string &prompt, T minVal, T maxVal) {
   }
 }
 
-std::shared_ptr<Player> createAI(int id, Archetype arch, float meanS, float meanC, float stdDev, GameManager& manager, std::mt19937& gen) {
-    std::normal_distribution<float> sD(meanS, stdDev), cD(meanC, stdDev);
+std::shared_ptr<Player> createAI(int id, Archetype arch, GameManager& manager, std::mt19937& gen) {
+    auto& cfg = manager.archetypeConfigs[arch];
+    std::uniform_real_distribution<float> sD(cfg.minSkill, cfg.maxSkill);
+    
+    float meanC = (arch == Archetype::SHARK ? 0.2f : (arch == Archetype::MANIAC ? 0.8f : (arch == Archetype::NIT ? -0.5f : 0.0f)));
+    std::normal_distribution<float> cD(meanC, 0.1f);
+    
     float skill = std::max(0.0f, std::min(1.0f, sD(gen)));
     float conf = std::max(-1.0f, std::min(1.0f, cD(gen)));
-    auto& cfg = manager.archetypeConfigs[arch];
+    
     return std::make_shared<AIPlayer>("AI_" + std::to_string(id), 10000, skill, conf, cfg.greedThreshold, cfg.k, cfg.gamma, arch, gen());
 }
 
-struct SimParams { int nP; float minS, maxS, conc, sP, mP; bool useCount; int sC, mC, nC; };
-SimParams getParams() {
+struct SimParams { int nP; int sC, mC, nC; };
+SimParams getParams(bool isInter) {
     SimParams p;
-    std::cout << "\n" << BOLD << CYAN << "--- Distribution Mode ---" << RESET << "\n";
-    std::cout << "1. Exact Count (Default) | 2. Percentage Distribution\nSelection: ";
-    int mode; 
-    std::string input;
-    std::getline(std::cin >> std::ws, input);
-    if (input == "2") p.useCount = false;
-    else p.useCount = true;
-
-    if (p.useCount) {
-        p.sC = safeInput<int>("Number of Sharks: ", 0, 17);
-        p.mC = safeInput<int>("Number of Maniacs: ", 0, 17 - p.sC);
-        p.nC = safeInput<int>("Number of Nits: ", 0, 17 - p.sC - p.mC);
-        p.nP = p.sC + p.mC + p.nC;
-        if (p.nP < 2) { 
-            std::cout << YELLOW << "[System] Total players < 2. Adding Nits to reach minimum 2.\n" << RESET; 
-            p.nC += (2 - p.nP); p.nP = 2; 
-        }
-    } else {
-        p.nP = safeInput<int>("Enter total number of players (2-17): ", 2, 17);
-        p.sP = safeInput<float>("% Shark: ", 0.0f, 100.0f);
-        p.mP = safeInput<float>("% Maniac: ", 0.0f, 100.0f - p.sP);
+    p.sC = 0; p.mC = 0; p.nC = 0;
+    
+    std::cout << "\n" << BOLD << CYAN << "--- Player Archetype Selection ---" << RESET << "\n";
+    int totalTarget = safeInput<int>("Total number of players (2-17): ", 2, 17);
+    p.nP = totalTarget;
+    
+    int aiNeeded = totalTarget - (isInter ? 1 : 0);
+    int remaining = aiNeeded;
+    
+    if (remaining > 0) {
+        p.sC = safeInput<int>("Number of Sharks (Max " + std::to_string(remaining) + "): ", 0, remaining);
+        remaining -= p.sC;
+    }
+    
+    if (remaining > 0) {
+        p.mC = safeInput<int>("Number of Maniacs (Max " + std::to_string(remaining) + "): ", 0, remaining);
+        remaining -= p.mC;
+    }
+    
+    if (remaining > 0) {
+        p.nC = safeInput<int>("Number of Nits (Max " + std::to_string(remaining) + "): ", 0, remaining);
+        remaining -= p.nC;
     }
 
-    std::cout << "\n" << BOLD << CYAN << "--- Global Skill Constraints ---" << RESET << "\n";
-    p.minS = safeInput<float>("Min Skill (0-1): ", 0.0f, 1.0f);
-    p.maxS = safeInput<float>("Max Skill (0-1): ", p.minS, 1.0f);
-    p.conc = safeInput<float>("Skill Concentration (1-100): ", 1.0f, 100.0f);
+    // Safety: If user didn't fill all slots, fill with Nits
+    if (remaining > 0) {
+        p.nC += remaining;
+        std::cout << YELLOW << "[System] Auto-filled " << remaining << " Nits to reach total player count." << RESET << "\n";
+    }
+
     return p;
 }
 
@@ -100,33 +108,18 @@ int main() {
     if (choice == 1 || choice == 2 || choice == 4) {
       bool isInter = (choice == 2), isLog = (choice == 4);
       int subMode = 1; if (choice == 1) subMode = safeInput<int>("1. Persistent | 2. Reset\nSelection: ", 1, 2);
-      SimParams p = getParams(); float stdDev = 1.0f / p.conc;
+      SimParams p = getParams(isInter);
       manager.displayArchetypeConfigs();
       std::vector<std::shared_ptr<Player>> players;
       if (isInter) { std::string hN; std::cout << "Enter your name: "; std::cin >> hN; players.push_back(std::make_shared<HumanPlayer>(hN, 10000, -1.0f, 0.0f, 0.0f)); }
       
-      if (p.useCount) {
-          int sAdded = 0, mAdded = 0, nAdded = 0;
-          while (players.size() < (size_t)p.nP) {
-              Archetype arch;
-              if (sAdded < p.sC) { arch = Archetype::SHARK; sAdded++; }
-              else if (mAdded < p.mC) { arch = Archetype::MANIAC; mAdded++; }
-              else { arch = Archetype::NIT; nAdded++; }
-
-              auto& cfg = manager.archetypeConfigs[arch];
-              float mS = (cfg.minSkill + cfg.maxSkill) / 2.0f;
-              float mC = (arch == Archetype::SHARK ? 0.2f : (arch == Archetype::MANIAC ? 0.8f : -0.5f));
-              players.push_back(createAI(players.size() + 1, arch, mS, mC, stdDev, manager, gen));
-          }
-      } else {
-          std::discrete_distribution<int> archDist({p.sP, p.mP, 100.0f - p.sP - p.mP});
-          for (int i = (int)players.size(); i < p.nP; ++i) {
-              int aIdx = archDist(gen); Archetype arch = (aIdx == 0) ? Archetype::SHARK : (aIdx == 1 ? Archetype::MANIAC : Archetype::NIT);
-              auto& cfg = manager.archetypeConfigs[arch];
-              float mS = (cfg.minSkill + cfg.maxSkill) / 2.0f;
-              float mC = (arch == Archetype::SHARK ? 0.2f : (arch == Archetype::MANIAC ? 0.8f : -0.5f));
-              players.push_back(createAI(i + 1, arch, mS, mC, stdDev, manager, gen));
-          }
+      int sAdded = 0, mAdded = 0, nAdded = 0;
+      while (players.size() < (size_t)p.nP) {
+          Archetype arch;
+          if (sAdded < p.sC) { arch = Archetype::SHARK; sAdded++; }
+          else if (mAdded < p.mC) { arch = Archetype::MANIAC; mAdded++; }
+          else { arch = Archetype::NIT; nAdded++; }
+          players.push_back(createAI(players.size() + 1, arch, manager, gen));
       }
       manager.setPlayers(players); if (isInter || isLog) manager.logMode = true;
       std::cout << "\n" << BOLD << CYAN << "--- Player Configuration ---" << RESET << "\n";
@@ -158,15 +151,7 @@ int main() {
         ss << "Mode: " << (isInter ? "Interactive" : (isLog ? "Log Mode" : "Standard")) << "\n"
            << "Submode: " << (subMode == 1 ? "Persistent" : "Reset Every Round") << "\n"
            << "Used Seed: " << manager.simulationSeed << "\n"
-           << "Players: " << p.nP << "\n";
-        if (p.useCount) {
-            ss << "Distribution: Exact Count (S:" << p.sC << ", M:" << p.mC << ", N:" << p.nC << ")\n";
-        } else {
-            ss << "Distribution: Percentage (S:" << p.sP << "%, M:" << p.mP << "%, N:" << (100.0f - p.sP - p.mP) << "%)\n";
-        }
-        ss << "Global Min Skill: " << std::fixed << std::setprecision(2) << p.minS << "\n"
-           << "Global Max Skill: " << p.maxS << "\n"
-           << "Skill Concentration: " << p.conc << "\n"
+           << "Players: " << p.nP << " (S:" << p.sC << ", M:" << p.mC << ", N:" << p.nC << ")\n"
            << "Rounds: " << numR;
         manager.simulationParams = ss.str();
         if (manager.autoExport) manager.startStreaming();
@@ -221,7 +206,7 @@ int main() {
           manager.currentBatchID = b + 1;
           int nP = std::uniform_int_distribution<int>(2, 17)(gen);
           std::vector<std::shared_ptr<Player>> players;
-          for (int i = 0; i < nP; ++i) players.push_back(createAI(i + 1, Archetype::NORMAL, 0.5f, 0.0f, 0.2f, manager, gen));
+          for (int i = 0; i < nP; ++i) players.push_back(createAI(i + 1, Archetype::NORMAL, manager, gen));
           manager.setPlayers(players); 
           if (manager.autoExport) manager.logAIConfigs();
           manager.isFinalRound = true; 
