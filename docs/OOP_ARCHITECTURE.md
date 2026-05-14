@@ -176,6 +176,19 @@ Hệ thống áp dụng cơ chế **Observer-like Logging**:
     - Khi `GameManager` gọi `players[i]->wantsToTrade()`, chương trình sẽ tự động tìm đến đúng hàm của `AIPlayer` (nếu là máy) hoặc `HumanPlayer` (nếu là người) thông qua **VTable**. 
     - Điều này giúp `GameManager` có thể quản lý mọi loại người chơi trong cùng một danh sách `std::vector<shared_ptr<Player>>` mà không cần biết cụ thể đó là lớp nào.
 
-### 6.3. Tính Trừu tượng (Abstraction)
-- Lớp `Player` và `GameState` là các **Lớp trừu tượng (Abstract Classes)** vì chứa ít nhất một hàm thuần ảo. Chúng ta không thể tạo trực tiếp đối tượng từ các lớp này (không thể `new Player()`), điều này đảm bảo tính toàn vẹn của logic thiết kế.
+### 6.4. Phân tích Cấu trúc (Structural Deep Dive)
+
+Trong thiết kế này, Kế thừa và Đa hình không chỉ là kỹ thuật lập trình mà là **xương sống của toàn bộ cấu trúc hệ thống**:
+
+1.  **Kế thừa là định nghĩa "Hợp đồng" (Contractual Inheritance)**:
+    - Khi `AIPlayer` kế thừa `Player`, nó "cam kết" phải có các thuộc tính và hành vi mà một người chơi cần có. Điều này giúp cấu trúc của `GameManager` trở nên ổn định. Manager không cần quan tâm AI đó thông minh hay ngu ngốc, nó chỉ cần biết AI đó "tuân thủ hợp đồng" của lớp `Player`.
+
+2.  **Đa hình là cơ chế "Cắm rút" (Pluggable Architecture)**:
+    - Nhờ đa hình, các `State` (Trạng thái) có thể được thay thế cho nhau tại thời điểm chạy. 
+    - **Cấu trúc linh hoạt**: `GameManager` giống như một cái ổ cắm, và các `State` là các thiết bị điện khác nhau (Quạt, Đèn, Tivi). Dù bạn cắm thiết bị nào vào, ổ cắm vẫn hoạt động theo đúng quy trình. Điều này cho phép hệ thống chuyển đổi từ "Chia bài" sang "Đổi bài" chỉ bằng cách thay đổi đối tượng mà con trỏ `currentState` đang trỏ tới.
+
+3.  **Sự kết hợp hoàn hảo**:
+    - **Kế thừa** tạo ra sự phân cấp (Hierarchy).
+    - **Đa hình** cho phép sự linh động (Flexibility) trong phân cấp đó.
+    - Kết quả là một hệ thống **Loose Coupling** (Ghép nối lỏng): Các thành phần phụ thuộc vào các giao diện trừu tượng thay vì phụ thuộc vào các lớp cụ thể.
 
