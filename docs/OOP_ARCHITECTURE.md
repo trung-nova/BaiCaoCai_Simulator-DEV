@@ -1,17 +1,32 @@
-# KIẾN TRÚC HƯỚNG ĐỐI TƯỢNG (OOP ARCHITECTURE)
+# KIẾN TRÚC HƯỚNG ĐỐI TƯỢNG CHUYÊN SÂU (ADVANCED OOP ARCHITECTURE)
 
-Tài liệu này giải thích cách hệ thống được xây dựng dựa trên các nguyên lý OOP để đảm bảo tính **Mở rộng (Extensibility)** và **Linh hoạt (Flexibility)**.
+Tài liệu này cung cấp cái nhìn chi tiết về cách áp dụng các nguyên lý OOP nâng cao và các mẫu thiết kế (Design Patterns) để xây dựng hệ thống mô phỏng Bài Cào Cái bền vững, dễ mở rộng.
 
 ---
 
-## 1. Sơ đồ lớp (Class Diagram) - Phiên bản chuẩn hóa
+## 1. Sơ đồ lớp Toàn diện (Comprehensive Class Diagram)
 
 ```mermaid
 classDiagram
-    %% --- Giao diện Trạng thái (State Pattern) ---
+    %% --- Định nghĩa các Enums & Structs ---
+    class Suit { <<enumeration>> HEARTS, DIAMONDS, CLUBS, SPADES }
+    class Rank { <<enumeration>> ACE, TWO, ..., TEN, JACK, QUEEN, KING }
+    class TradeDecision { <<enumeration>> SKIP, TRADE, STAY }
+    
+    class SwapRecord {
+        +int roundID
+        +string playerName
+        +float satisfaction
+        +float probability
+        +string cardOut
+        +string cardIn
+    }
+
+    %% --- Mẫu thiết kế State (State Pattern) ---
     class GameState {
         <<interface>>
         +handle(context: GameManager)* void
+        +getName()* string
     }
 
     class BettingState { +handle(context: GameManager) void }
@@ -19,88 +34,127 @@ classDiagram
     class TradingState { +handle(context: GameManager) void }
     class EvalState { +handle(context: GameManager) void }
 
-    GameState <|-- BettingState
-    GameState <|-- DealingState
-    GameState <|-- TradingState
-    GameState <|-- EvalState
+    GameState <|-- BettingState : Implement
+    GameState <|-- DealingState : Implement
+    GameState <|-- TradingState : Implement
+    GameState <|-- EvalState : Implement
 
     %% --- Lớp trừu tượng Người chơi (Polymorphism) ---
     class Player {
         <<abstract>>
-        #name: string
-        #archetype: string
-        #hand: vector~Card~
-        #balance: int
-        #skillLevel: float
-        #confidenceLevel: float
-        #isTilt: bool
-        +wantsToTrade()* TradeDecision
+        #string name
+        #string archetype
+        #Hand hand
+        #int balance
+        #float skillLevel
+        #float confidenceLevel
+        #float tradeDesire
+        #bool isTilt
+        #float satisfactionTable[11]
+        
+        +wantsToTrade(roundID, turn)* TradeDecision
         +getScore() int
         +isBaTien() bool
+        +receiveCard(c: Card) void
+        +clearHand() void
+        #updateSatisfactionTable() void
     }
 
     class AIPlayer {
-        -rng: mt19937
+        -mt19937 rng
         +wantsToTrade() TradeDecision
+        +pickSwapPartner() Player*
     }
 
     class HumanPlayer {
         +wantsToTrade() TradeDecision
     }
 
-    Player <|-- AIPlayer
-    Player <|-- HumanPlayer
+    Player <|-- AIPlayer : Inheritance
+    Player <|-- HumanPlayer : Inheritance
 
-    %% --- Lớp Điều khiển Trung tâm ---
+    %% --- Điều khiển & Quản lý ---
     class GameManager {
-        +players: vector~shared_ptr~Player~~
-        +currentState: unique_ptr~GameState~
-        +archetypeConfigs: map~string, ArchetypeConfig~
+        -vector~shared_ptr~Player~~ players
+        -unique_ptr~GameState~ currentState
+        -Deck deck
+        -map~string, ArchetypeConfig~ archetypeConfigs
         +roundCount: int
-        +simulationSeed: long long
-        +changeState(newState: GameState) void
+        +isStreaming: bool
+        
+        +changeState(newState: GameState*) void
         +playRound() void
         +startStreaming() void
         +logAIConfigs() void
+        +exportResearchReports() void
     }
 
-    %% --- Lớp Dữ liệu & Tiện ích ---
+    %% --- Thành phần Dữ liệu ---
     class Card {
-        +suit: Suit
-        +rank: Rank
+        +Suit suit
+        +Rank rank
+        +getModuloValue() int
+        +toString(bool color) string
     }
 
     class Deck {
-        -cards: vector~Card~
+        -vector~Card~ cards
         +shuffle() void
         +drawCard() Card
     }
 
-    %% --- Mối quan hệ ---
-    GameManager *-- Player : Quản lý (1..N)
-    GameManager *-- GameState : Trạng thái hiện tại
-    GameManager o-- Deck : Sử dụng
-    Player *-- Card : Nắm giữ (3)
-    Deck *-- Card : Chứa đựng (52)
+    %% --- Quan hệ giữa các thành phần ---
+    GameManager *-- Player : Composition (1..N)
+    GameManager *-- GameState : Strategy/State
+    GameManager o-- Deck : Aggregation
+    Player *-- Card : Composition (3)
+    Player o-- SwapRecord : Dependency
+    Deck *-- Card : Composition (52)
 ```
 
 ---
 
-## 2. Các điểm cải tiến về Thiết kế (Design Highlights)
+## 2. Phân tích các Nguyên lý OOP áp dụng
 
-### 2.1. Dynamic Archetype System (Cơ chế Archetype Động)
-Thay vì sử dụng `enum` cứng nhắc, hệ thống sử dụng **`std::string`** làm định danh cho các loại cá tính AI. 
-- **Lợi ích**: Người dùng có thể thêm bất kỳ loại AI mới nào vào file `config.ini` (ví dụ: `[WHALE]`, `[GAMBLER]`) mà không cần sửa đổi mã nguồn.
-- **Kỹ thuật**: Sử dụng `std::map<std::string, ArchetypeConfig>` để lưu trữ tham số cấu hình.
+### 2.1. Tính Trừu tượng (Abstraction)
+Hệ thống không làm việc trực tiếp với các hành vi cụ thể mà làm việc thông qua các lớp cơ sở trừu tượng (`Player`, `GameState`).
+- **Ví dụ**: `GameManager` chỉ biết nó đang giữ một danh sách `Player*`. Khi cần đổi bài, nó chỉ gọi `wantsToTrade()`. Việc đó là do con người nhập hay do thuật toán Sigmoid tính toán thì `GameManager` không cần biết.
 
-### 2.2. State Pattern (Mẫu trạng thái)
-Vòng đời của một ván bài được tách bạch thành các lớp `State` riêng biệt. Điều này giúp loại bỏ các cấu trúc `if-else` phức tạp trong `GameManager` và cho phép mở rộng luật chơi (ví dụ: thêm vòng cược) cực kỳ dễ dàng.
+### 2.2. Tính Đa hình (Polymorphism)
+Đây là chìa khóa để tạo ra các loại AI khác nhau.
+- **Liên kết động (Dynamic Binding)**: Tại thời điểm chạy, C++ sẽ dựa vào **VTable** để quyết định hàm `wantsToTrade()` nào được gọi.
+- **Tính mở rộng**: Để thêm một loại người chơi mới (ví dụ: `NeuralNetPlayer`), ta chỉ cần tạo lớp kế thừa từ `Player` mà không phải sửa một dòng code nào trong `GameManager`.
 
-### 2.3. Polymorphism & Smart Pointers
-- Sử dụng `std::shared_ptr<Player>` để quản lý đa hình giữa Người và Máy.
-- `std::unique_ptr<GameState>` đảm bảo quản lý bộ nhớ an toàn, tự động giải phóng trạng thái cũ khi chuyển sang trạng thái mới.
+### 2.3. Quản lý Bộ nhớ An toàn (Modern C++)
+Dự án sử dụng triệt để Smart Pointers (C++11/17) để ngăn chặn Memory Leaks:
+- **`std::shared_ptr<Player>`**: Vì một Player có thể được tham chiếu bởi `GameManager` và các `State` khác nhau cùng lúc.
+- **`std::unique_ptr<GameState>`**: Đảm bảo tại một thời điểm chỉ có duy nhất một trạng thái trò chơi tồn tại. Khi chuyển trạng thái, trạng thái cũ sẽ tự động được giải phóng một cách an toàn.
 
 ---
 
-## 3. Quản lý Dữ liệu (Data Streaming)
-Dữ liệu được đẩy trực tiếp ra các tệp CSV thông qua các luồng (`std::ofstream`) được quản lý bởi `GameManager`. Việc gỡ bỏ SQLite giúp hệ thống nhẹ hơn và loại bỏ các phụ thuộc thư viện bên ngoài (External Dependencies), tăng tính di động (Portability) của phần mềm.
+## 3. Các mẫu thiết kế (Design Patterns) chuyên sâu
+
+### 3.1. State Pattern (Mẫu Trạng thái)
+Thay vì dùng một hàm `main` khổng lồ với hàng chục biến cờ (`isDealing`, `isTrading`), chúng ta đóng gói mỗi giai đoạn thành một đối tượng.
+- **Quy trình chuyển đổi**: `Betting` -> `Dealing` -> `Trading` -> `Eval` -> (Lặp lại).
+- **Lợi ích**: Logic của mỗi giai đoạn được cô lập. Nếu muốn sửa cách chia bài, bạn chỉ cần sửa trong `DealingState` mà không sợ làm hỏng logic tính điểm trong `EvalState`.
+
+### 3.2. Dynamic Configuration (Cấu hình Động)
+Hệ thống sử dụng mẫu gần giống với **Prototype/Registry** cho các Archetype.
+- Thay vì dùng `enum` cố định, chúng ta dùng `std::map<std::string, ArchetypeConfig>`.
+- Khi khởi tạo AI, hệ thống sẽ "đăng ký" các tham số từ file `config.ini` vào map này. Điều này biến mã nguồn thành một "Engine" thực thụ, có thể thay đổi toàn bộ hành vi của quần thể AI mà không cần biên dịch lại.
+
+---
+
+## 4. Cơ chế Xử lý Luồng Dữ liệu (Data Flow)
+
+Hệ thống áp dụng cơ chế **Observer-like Logging**:
+1.  **Sự kiện**: Một hành động xảy ra (ví dụ: AI quyết định đổi bài).
+2.  **Đóng gói**: Thông tin được đóng gói vào struct `SwapRecord`.
+3.  **Ghi nhận**: `GameManager` kiểm tra nếu `isStreaming == true` thì sẽ đẩy dữ liệu này vào luồng `std::ofstream` tương ứng.
+4.  **Đảm bảo**: Sử dụng lệnh `.flush()` định kỳ để đảm bảo dữ liệu không bị mất nếu chương trình gặp sự cố đột ngột.
+
+---
+
+## 5. Kết luận về Kiến trúc
+Kiến trúc này đạt được sự cân bằng giữa **Hiệu năng (C++ thuần)** và **Khả năng Bảo trì (OOP)**. Nó không chỉ là một trò chơi, mà là một khung sườn (Framework) có khả năng mô phỏng bất kỳ kịch bản cá cược đa tác nhân (Multi-agent) nào.

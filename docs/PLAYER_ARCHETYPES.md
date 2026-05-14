@@ -1,50 +1,52 @@
-# PHÂN LOẠI VÀ TÂM LÝ AI (PLAYER ARCHETYPES)
+# HỒ SƠ TÂM LÝ VÀ PHÂN LOẠI AI (PLAYER ARCHETYPES DEEP DIVE)
 
-Hệ thống mô phỏng Bài Cào Cái cho phép tùy biến không giới hạn các loại cá tính AI thông qua file cấu hình.
+Tài liệu này phân tích chi tiết các "cá tính" AI được mô phỏng trong hệ thống và cách các tham số toán học tạo ra sự khác biệt trong lối chơi.
 
-## 1. Cơ chế Archetype Động (Dynamic Profiles)
+---
 
-Khác với các hệ thống truyền thống, danh sách các nhóm AI không bị giới hạn trong mã nguồn. Hệ thống sẽ tự động quét file `config.ini` và nhận diện các Section mới làm tên cho Archetype.
+## 1. Triết lý Thiết kế: Archetype là gì?
 
-**Ví dụ cấu hình trong `config.ini`:**
-```ini
-[SHARK]
-k=2.5
-gamma=2.2
-greed_threshold=0.1
-min_skill=0.8
-max_skill=1.0
-```
+Trong dự án này, Archetype không phải là một tập hợp các quy tắc `If-Else` cứng nhắc, mà là một **Bộ tham số cấu hình (Configuration Set)** cho hàm quyết định xác suất. Điều này cho phép chúng ta tạo ra vô số biến thể người chơi chỉ bằng cách thay đổi các con số trong `config.ini`.
 
-## 2. Các tham số tâm lý điều khiển AI
+## 2. Phân tích 3 Archetype mẫu (Pre-defined Profiles)
 
-Mỗi Archetype được định nghĩa bởi các tham số toán học sau:
+### 2.1. SHARK (Cá mập) - Kẻ săn mồi lý trí
+- **Kỹ năng (`skill`):** 0.8 - 1.0 (Rất cao).
+- **Độ nhạy cảm (`k`):** 2.5 (Phản ứng nhanh với thay đổi điểm số).
+- **Độ ngại rủi ro (`gamma`):** 2.2 (Khó hài lòng).
+- **Chiến thuật:** Shark chơi cực kỳ kỷ luật. Nó biết rằng bài 8-9 điểm là rất tốt, nhưng nếu có cơ hội đổi để lấy "Ba Tiên", nó sẽ tính toán rủi ro cực kỳ chi tiết. Shark đại diện cho nhóm người chơi chuyên nghiệp, tối ưu hóa lợi nhuận kỳ vọng (EV).
 
-| Tham số | Ý nghĩa tâm lý |
+### 2.2. MANIAC (Kẻ điên) - Con thiêu thân rủi ro
+- **Kỹ năng (`skill`):** 0.3 - 0.6 (Trung bình kém).
+- **Độ nhạy cảm (`k`):** 1.0 (Lỳ lợm, không quá quan tâm đến điểm số).
+- **Độ tham lam (`greed`):** Cao.
+- **Chiến thuật:** Maniac thích cảm giác mạnh. Nó thường đổi bài liên tục ngay cả khi đang cầm điểm trung bình (5-6 điểm). Hành động của Maniac mang tính chất bộc phát và khó đoán, thường gây nhiễu cho các phân tích xác suất thông thường.
+
+### 2.3. NIT (Kẻ nhát) - Người chơi bảo thủ
+- **Kỹ năng (`skill`):** 0.4 - 0.7 (Trung bình).
+- **Độ ngại rủi ro (`gamma`):** 3.0 (Cực cao).
+- **Tự tin (`confidence`):** Thường thấp hoặc âm.
+- **Chiến thuật:** Nit cực kỳ sợ thua. Nó thường "Dằn" bài ngay khi có điểm số an toàn và hiếm khi thực hiện các lượt đổi bài mạo hiểm. Nit đại diện cho nhóm người chơi ưu tiên bảo toàn vốn hơn là tìm kiếm lợi nhuận lớn.
+
+---
+
+## 3. Bản đồ Tham số (Parameter Mapping)
+
+Hệ thống cho phép bạn tự định nghĩa Archetype mới bằng cách hiểu rõ ý nghĩa của từng tham số:
+
+| Tham số | Ảnh hưởng đến hành vi |
 | :--- | :--- |
-| **`k`** | **Độ nhạy cảm cảm xúc**: `k` càng cao, AI càng phản ứng cực đoan với điểm số (vui/buồn nhanh). |
-| **`gamma`** | **Độ ngại rủi ro (Risk Aversion)**: `gamma` cao khiến AI khó thỏa mãn, đòi hỏi điểm cao hơn mới dám "Dằn". |
-| **`greed_threshold`** | **Tính tham lam**: Quyết định mức độ tăng áp lực muốn đổi bài (`Trade Desire`) qua các lượt. |
-| **`min/max_skill`** | **Khoảng kỹ năng**: Xác định năng lực tính toán lý trí của nhóm AI đó. |
+| **`k`** | Kiểm soát "độ gắt" của cảm xúc. `k` cao làm AI trở nên quyết đoán, `k` thấp làm AI trở nên phân vân. |
+| **`gamma`** | Dịch chuyển điểm bão hòa của độ thỏa mãn. `gamma` cao buộc AI phải có điểm cao mới thấy "đủ". |
+| **`greed_threshold`** | Điều khiển tốc độ tích lũy của `Trade Desire`. Chỉ số này càng cao, AI càng "nóng lòng" muốn đổi bài qua mỗi lượt. |
+| **`min/max_skill`** | Xác định "trí thông minh" của AI. AI thông minh sẽ biết ưu tiên xác suất thắng thay vì cảm xúc từ hàm Sigmoid. |
 
 ---
 
-## 3. Mô hình Quyết định (Decision Model)
+## 4. Tương tác Quần thể (Population Dynamics)
 
-AI đưa ra quyết định dựa trên sự kết hợp giữa **Lý trí** và **Cảm xúc**:
+Khi bạn trộn lẫn nhiều Archetype trong một ván đấu, hệ thống sẽ nảy sinh các hiện tượng thú vị:
+- **Sự dịch chuyển tài sản**: Tiền thường có xu hướng chảy từ Maniac sang Nit và Shark.
+- **Áp lực lên Nhà cái**: Nếu nhà cái là một Nit đối đầu với một bàn toàn Shark, nhà cái sẽ nhanh chóng bị "bào" sạch tiền do không dám mạo hiểm trong những ván bài quyết định.
 
-1.  **Hàm Sigmoid (Cảm xúc)**: Tính độ thỏa mãn $S$ dựa trên điểm hiện tại.
-    - $S \approx 1$: Bài đẹp, rất hài lòng.
-    - $S \approx 0$: Bài xấu, muốn đổi ngay.
-2.  **Tính toán Lý trí**: AI giỏi (`skill` cao) sẽ biết rằng bài 5-6 điểm vẫn có cơ hội thắng và sẽ cân nhắc đổi bài dựa trên xác suất thực tế thay vì cảm xúc nhất thời.
-3.  **Hệ quả**: Quyết định cuối cùng là một biến ngẫu nhiên có trọng số, mô phỏng sự không chắc chắn của con người (không phải lúc nào cũng chọn phương án tối ưu).
-
----
-
-## 4. Trạng thái TILT (Cay cú)
-
-Hệ thống ghi nhận và mô phỏng trạng thái mất kiểm soát của AI khi:
-- Thua liên tiếp quá nhiều ván.
-- Hoặc số dư tài khoản sụt giảm nghiêm trọng.
-
-**Khi TILT:** AI sẽ bị giảm kỹ năng (`skill`) và tăng sự tự tin mù quáng (`confidence`), dẫn đến các quyết định đổi bài phi lý trí và thường gây thiệt hại nặng nề hơn cho tài khoản.
+**Ghi chú:** Toàn bộ lịch sử hành vi của các Archetype này được ghi lại chi tiết trong file `_swap_decisions.csv` để phục vụ việc vẽ biểu đồ và phân tích tâm lý học hành vi.
