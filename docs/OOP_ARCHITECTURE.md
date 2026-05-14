@@ -34,10 +34,10 @@ classDiagram
     class TradingState { +handle(context: GameManager) void }
     class EvalState { +handle(context: GameManager) void }
 
-    GameState <|-- BettingState : Inheritance
-    GameState <|-- DealingState : Inheritance
-    GameState <|-- TradingState : Inheritance
-    GameState <|-- EvalState : Inheritance
+    GameState <|-- BettingState : Inheritance-Defines-State
+    GameState <|-- DealingState : Inheritance-Defines-State
+    GameState <|-- TradingState : Inheritance-Defines-State
+    GameState <|-- EvalState : Inheritance-Defines-State
 
     %% --- Lớp trừu tượng Người chơi (Polymorphism) ---
     class Player {
@@ -70,8 +70,8 @@ classDiagram
         +wantsToTrade() TradeDecision
     }
 
-    Player <|-- AIPlayer : Inheritance
-    Player <|-- HumanPlayer : Inheritance
+    Player <|-- AIPlayer : Inheritance-Polymorphism
+    Player <|-- HumanPlayer : Inheritance-Polymorphism
     
     note for Player "POLYMOPRHISM:\nAllows GameManager to interact\nwith any player type via VTable"
     note for GameState "STATE PATTERN:\nEnables structural flexibility\nthrough pluggable states"
@@ -208,9 +208,9 @@ classDiagram
     class AIPlayer { +wantsToTrade() }
     class HumanPlayer { +wantsToTrade() }
 
-    GameState <|-- ConcreteStates : "Inheritance (State Pattern)"
-    Player <|-- AIPlayer : "Inheritance (Polymorphism)"
-    Player <|-- HumanPlayer : "Inheritance (Polymorphism)"
+    GameState <|-- ConcreteStates : Inheritance-StatePattern
+    Player <|-- AIPlayer : Inheritance-Polymorphism
+    Player <|-- HumanPlayer : Inheritance-Polymorphism
     
     GameManager *-- GameState : Strategy/State
     GameManager *-- Player : Aggregation (1..N)
