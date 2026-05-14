@@ -34,10 +34,10 @@ classDiagram
     class TradingState { +handle(context: GameManager) void }
     class EvalState { +handle(context: GameManager) void }
 
-    GameState <|-- BettingState : Implement
-    GameState <|-- DealingState : Implement
-    GameState <|-- TradingState : Implement
-    GameState <|-- EvalState : Implement
+    GameState <|-- BettingState : [Inheritance: Defines State Interface]
+    GameState <|-- DealingState : [Inheritance: Defines State Interface]
+    GameState <|-- TradingState : [Inheritance: Defines State Interface]
+    GameState <|-- EvalState : [Inheritance: Defines State Interface]
 
     %% --- Lớp trừu tượng Người chơi (Polymorphism) ---
     class Player {
@@ -70,12 +70,11 @@ classDiagram
         +wantsToTrade() TradeDecision
     }
 
-    Player <|-- AIPlayer : [Inheritance]
-    Player <|-- HumanPlayer : [Inheritance]
+    Player <|-- AIPlayer : [Inheritance: Structural Blueprint]
+    Player <|-- HumanPlayer : [Inheritance: Structural Blueprint]
     
-    note for Player "Abstract Base Class (Interface)\nProvides Polymorphic Interface"
-    note for AIPlayer "Specific Strategy Implementation"
-    note for GameState "State Interface\nfor Runtime Polymorphism"
+    note for Player "POLYMOPRHISM:\nAllows GameManager to interact\nwith any player type via VTable"
+    note for GameState "STATE PATTERN:\nEnables structural flexibility\nthrough pluggable states"
 
     %% --- Điều khiển & Quản lý ---
     class GameManager {
