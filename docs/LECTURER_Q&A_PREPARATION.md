@@ -72,7 +72,21 @@ Tài liệu này tổng hợp mọi ngóc ngách kỹ thuật, từ những dòn
 
 ## 🎯 PHẦN IV: TRIẾT LÝ VÀ PHẢN BIỆN CAO CẤP
 
-### 10. Tại sao mô phỏng lại quan trọng hơn công thức toán học?
+### 10. Tại sao dùng Quyết định Xác suất (Stochastic) thay vì Quyết định Tất định (Deterministic)?
+*   **Câu hỏi:** *"Tại sao em không dùng các lệnh `if (score < 5) swap()` mà lại phải dùng số ngẫu nhiên để quyết định?"*
+*   **Giải đáp (Overthinking):** 
+    1.  **Mô phỏng Sự không chắc chắn (Uncertainty)**: Con người không phải là thuật toán tĩnh. Một người chơi có thể đổi bài ở 5 điểm trong ván này nhưng lại giữ ở ván sau do cảm giác bồn chồn hoặc hy vọng hão huyền. Số ngẫu nhiên đóng vai trò là "biến số tự do" mô phỏng sự không nhất quán này.
+    2.  **Lý thuyết Hữu dụng hữu hạn (Bounded Rationality)**: Theo Herbert Simon, con người bị giới hạn bởi năng lực tính toán. Việc dùng xác suất giúp tạo ra các "sai số" trong quyết định, khiến AI trông "người" hơn.
+    3.  **Tránh hội tụ hành vi**: Nếu dùng lệnh `if` cứng, hàng triệu AI sẽ hành động y hệt nhau, làm mất đi tính đa dạng của dữ liệu quần thể. Số ngẫu nhiên đảm bảo rằng ngay cả trong cùng một hoàn cảnh, mỗi AI vẫn có một "số phận" riêng biệt.
+    4.  **Soft Thresholding**: Thay vì một ranh giới cứng tại 5 điểm, số ngẫu nhiên kết hợp với hàm Sigmoid cho phép AI hoạt động trong "vùng xám" xác suất, tạo ra sự mượt mà trong mô hình hành vi.
+
+### 11. Tại sao dùng hàm Sigmoid thay vì Machine Learning?
+*   **Câu hỏi:** *"Tại sao em không dùng Deep Learning cho AI tự học?"*
+*   **Trả lời:**
+    *   **Explainability (Tính giải thích)**: Giảng viên có thể nhìn vào tham số $k$ và $\gamma$ để hiểu tại sao AI quyết định như vậy. ML là một "hộp đen" không thể giải trình logic trong báo cáo học thuật.
+    *   **Diversity (Tính đa dạng)**: ML luôn tìm cách thắng bằng mọi giá nên các AI sẽ có hành vi giống hệt nhau. Hàm Sigmoid cho phép ta tạo ra các cá tính đa dạng (Shark, Maniac, Nit) để mô phỏng một xã hội thu nhỏ.
+
+### 12. Tại sao mô phỏng lại quan trọng hơn công thức toán học?
 *   **Câu hỏi:** *"Tại sao không dùng công thức tổ hợp để tính luôn tỉ lệ thắng cho nhanh?"*
 *   **Trả lời (Chốt hạ):** 
     *   "Toán học lý thuyết chỉ tính được các ván bài tĩnh. Khi đưa vào yếu tố **Hành vi (Đổi bài dựa trên tâm lý)** và **Tâm lý tích lũy (TILT)**, hệ thống trở thành một **Hệ thống thích nghi phức hợp (Complex Adaptive System)**. Lúc này, công thức giải tích (Analytical Solution) không còn khả thi, và **Mô phỏng Monte Carlo** là công cụ duy nhất để khám phá các hiện tượng mới nổi (Emergent Behaviors)."
