@@ -70,8 +70,12 @@ classDiagram
         +wantsToTrade() TradeDecision
     }
 
-    Player <|-- AIPlayer : Inheritance
-    Player <|-- HumanPlayer : Inheritance
+    Player <|-- AIPlayer : [Inheritance]
+    Player <|-- HumanPlayer : [Inheritance]
+    
+    note for Player "Abstract Base Class (Interface)\nProvides Polymorphic Interface"
+    note for AIPlayer "Specific Strategy Implementation"
+    note for GameState "State Interface\nfor Runtime Polymorphism"
 
     %% --- Điều khiển & Quản lý ---
     class GameManager {
@@ -156,5 +160,22 @@ Hệ thống áp dụng cơ chế **Observer-like Logging**:
 
 ---
 
-## 5. Kết luận về Kiến trúc
-Kiến trúc này đạt được sự cân bằng giữa **Hiệu năng (C++ thuần)** và **Khả năng Bảo trì (OOP)**. Nó không chỉ là một trò chơi, mà là một khung sườn (Framework) có khả năng mô phỏng bất kỳ kịch bản cá cược đa tác nhân (Multi-agent) nào.
+## 6. Minh chứng Kế thừa và Đa hình (Inheritance & Polymorphism Evidence)
+
+Đây là các điểm then chốt để trả lời giảng viên về cách hệ thống áp dụng các đặc tính lõi của OOP:
+
+### 6.1. Kế thừa (Inheritance)
+- **Cấu trúc**: `AIPlayer` và `HumanPlayer` kế thừa từ lớp cơ sở `Player`. `BettingState`, `DealingState`,... kế thừa từ `GameState`.
+- **Lợi ích**: Tái sử dụng mã nguồn (Code Reuse). Các thuộc tính chung như `balance`, `name`, `hand` chỉ cần định nghĩa một lần ở lớp cha `Player`.
+
+### 6.2. Đa hình (Polymorphism)
+- **Cơ chế**: Sử dụng **Hàm thuần ảo (Pure Virtual Functions)**.
+    - `virtual TradeDecision wantsToTrade(...) = 0;` trong lớp `Player`.
+    - `virtual void handle(GameManager* context) = 0;` trong lớp `GameState`.
+- **Đa hình tại thời điểm chạy (Runtime Polymorphism)**: 
+    - Khi `GameManager` gọi `players[i]->wantsToTrade()`, chương trình sẽ tự động tìm đến đúng hàm của `AIPlayer` (nếu là máy) hoặc `HumanPlayer` (nếu là người) thông qua **VTable**. 
+    - Điều này giúp `GameManager` có thể quản lý mọi loại người chơi trong cùng một danh sách `std::vector<shared_ptr<Player>>` mà không cần biết cụ thể đó là lớp nào.
+
+### 6.3. Tính Trừu tượng (Abstraction)
+- Lớp `Player` và `GameState` là các **Lớp trừu tượng (Abstract Classes)** vì chứa ít nhất một hàm thuần ảo. Chúng ta không thể tạo trực tiếp đối tượng từ các lớp này (không thể `new Player()`), điều này đảm bảo tính toàn vẹn của logic thiết kế.
+
