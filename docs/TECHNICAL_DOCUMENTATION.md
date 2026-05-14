@@ -104,13 +104,15 @@ Dự án cung cấp 2 cấp độ kiểm tra:
 
 ---
 
-## 6. Cơ chế Seed phân cấp (Hierarchical Seeding)
+## 6. Cơ chế Seed phân cấp & Tính Tất định (Deterministic Hierarchical Seeding)
 
-Để đảm bảo tính tái lập (Reproducibility) trong nghiên cứu khoa học, hệ thống triển khai cơ chế Seed phân cấp từ trên xuống dưới:
+Hệ thống sử dụng thuật toán **Mersenne Twister (`std::mt19937`)** để đảm bảo tính ngẫu nhiên chất lượng cao nhưng vẫn có thể tái lập hoàn toàn.
 
-1.  **Master Seed**: Được đọc từ `config.ini` hoặc nhập từ bàn phím. Seed này khởi tạo bộ sinh số ngẫu nhiên chính (`gen`) trong `main.cpp`.
-2.  **Archetype Assignment**: Master Seed quyết định việc gán nhóm nhân vật cho từng AI. Với cùng một Seed, Player 1 sẽ luôn là Shark, Player 2 luôn là Nit,...
-3.  **Parameter Sampling**: Sử dụng Master Seed để lấy mẫu (sampling) các chỉ số `Skill` và `Confidence` từ phân phối chuẩn. Điều này đảm bảo "năng lực" của quần thể AI là cố định giữa các lần chạy.
-4.  **Individual RNG**: Mỗi AI nhận một `Sub-seed` được sinh ra từ Master Seed để quản lý các quyết định ngẫu nhiên trong ván đấu (ví dụ: xác suất đổi bài).
+### 6.1. Chuỗi nhân quả (Chain of Causality)
+Từ một **Master Seed** duy nhất, hệ thống tạo ra một chuỗi các số giả ngẫu nhiên không đổi:
+1.  **Giai đoạn Khởi tạo**: Master Seed được dùng để rút số cho các thuộc tính tĩnh (`Skill`, `Confidence`) của từng AI thông qua thuật toán **Box-Muller** (biến đổi số ngẫu nhiên đều thành phân phối chuẩn Gauss).
+2.  **Giai đoạn Lan truyền**: Mỗi đối tượng `AIPlayer` khi khởi tạo sẽ rút một số nguyên từ Master Seed để làm **Local Seed** cho bộ não riêng của mình.
+3.  **Giai đoạn Vận hành**: Local Seed này sẽ quyết định các hành vi "may rủi" trong ván đấu (như bốc bài, xác suất đổi bài).
 
-Cơ chế này cho phép các nhà nghiên cứu cô lập các biến số và kiểm chứng chính xác tác động của việc thay đổi cấu hình (như bật/tắt TILT) trên cùng một quần thể người chơi y hệt nhau.
+### 6.2. Ý nghĩa thực tế
+Nếu bạn chạy mô phỏng 1 triệu ván đấu với `seed=123`, và ở ván thứ 999,999 xảy ra một tình huống AI phá sản, bạn có thể **tái hiện lại đúng 100%** tình huống đó chỉ bằng cách nhập lại Seed 123. Điều này cho phép "gỡ lỗi hành vi" (behavioral debugging) – một kỹ thuật quan trọng trong nghiên cứu AI.
