@@ -6,7 +6,7 @@
 #include <iostream>
 #include <iomanip>
 
-Player::Player(const std::string& name, int balance, float skillLevel, float confidenceLevel, float tradeDesire, float k, float gamma, Archetype archetype)
+Player::Player(const std::string& name, int balance, float skillLevel, float confidenceLevel, float tradeDesire, float k, float gamma, const std::string& archetype)
     : name(name), balance(balance), isDealer(false), skillLevel(skillLevel), confidenceLevel(confidenceLevel), tradeDesire(tradeDesire), k(k), gamma(gamma),
       archetype(archetype), baseSkillLevel(skillLevel), baseConfidenceLevel(confidenceLevel), startingBalance(balance), consecutiveLosses(0), isTilt(false), isHuman(false) {
     updateSatisfactionTable();
@@ -104,7 +104,7 @@ void Player::updateSatisfactionTable() {
     }
 }
 
-AIPlayer::AIPlayer(const std::string& name, int balance, float skillLevel, float confidenceLevel, float tradeDesire, float k, float gamma, Archetype archetype, unsigned seed)
+AIPlayer::AIPlayer(const std::string& name, int balance, float skillLevel, float confidenceLevel, float tradeDesire, float k, float gamma, const std::string& archetype, unsigned seed)
     : Player(name, balance, skillLevel, confidenceLevel, tradeDesire, k, gamma, archetype) {
     if (seed == 0) {
         seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -216,8 +216,10 @@ Player* AIPlayer::pickSwapPartner(const std::vector<Player*>& candidates) {
     return candidates[selectDist(rng)];
 }
 
-HumanPlayer::HumanPlayer(const std::string& name, int balance, float skillLevel, float confidenceLevel, float tradeDesire, float k, float gamma, Archetype archetype)
-    : Player(name, balance, skillLevel, confidenceLevel, tradeDesire, k, gamma, archetype) { isHuman = true; }
+HumanPlayer::HumanPlayer(const std::string& name, int balance, float skillLevel, float confidenceLevel, float tradeDesire, float k, float gamma, const std::string& archetype)
+    : Player(name, balance, skillLevel, confidenceLevel, tradeDesire, k, gamma, archetype) {
+    isHuman = true;
+}
 
 TradeDecision HumanPlayer::wantsToTrade(int roundID, int swapTurn, bool logMode, bool showLogic, SwapRecord* outRecord) {
     if (hasStayed) return TradeDecision::STAY;

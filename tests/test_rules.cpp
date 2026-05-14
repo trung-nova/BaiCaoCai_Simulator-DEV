@@ -20,7 +20,7 @@ void testScoring() {
 void testBaTien() {
     std::cout << "[Test] Ba Tien Rule...";
     // AIPlayer(const std::string& name, int balance, float skill, float conf, float greed, float k, float gamma, Archetype arch)
-    auto p = std::make_shared<AIPlayer>("Tester", 10000, 0.5f, 0.0f, 0.5f, 1.0f, 2.0f, Archetype::NORMAL);
+    auto p = std::make_shared<AIPlayer>("Tester", 10000, 0.5f, 0.0f, 0.5f, 1.0f, 2.0f, "NORMAL");
     
     p->receiveCard(Card(Suit::SPADES, Rank::JACK));
     p->receiveCard(Card(Suit::HEARTS, Rank::QUEEN));

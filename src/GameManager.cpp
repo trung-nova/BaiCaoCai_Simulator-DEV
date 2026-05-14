@@ -211,17 +211,12 @@ bool GameManager::loadConfig(const std::string& filename) {
             continue;
         }
 
-        Archetype arch;
-        if (currentSection == "SHARK") arch = Archetype::SHARK;
-        else if (currentSection == "MANIAC") arch = Archetype::MANIAC;
-        else if (currentSection == "NIT") arch = Archetype::NIT;
-        else continue;
-        
-        if (key == "k") archetypeConfigs[arch].k = value;
-        else if (key == "gamma") archetypeConfigs[arch].gamma = value;
-        else if (key == "greed_threshold") archetypeConfigs[arch].greedThreshold = value;
-        else if (key == "min_skill") archetypeConfigs[arch].minSkill = value;
-        else if (key == "max_skill") archetypeConfigs[arch].maxSkill = value;
+        // Dynamic Archetype loading
+        if (key == "k") archetypeConfigs[currentSection].k = value;
+        else if (key == "gamma") archetypeConfigs[currentSection].gamma = value;
+        else if (key == "greed_threshold") archetypeConfigs[currentSection].greedThreshold = value;
+        else if (key == "min_skill") archetypeConfigs[currentSection].minSkill = value;
+        else if (key == "max_skill") archetypeConfigs[currentSection].maxSkill = value;
     }
     std::cout << "[Config] Successfully loaded archetype personalities from " << filename << "\n";
     return true;
@@ -236,19 +231,14 @@ void GameManager::displayArchetypeConfigs() {
               << std::setw(15) << "Skill Range" << "\n";
     std::cout << "--------------------------------------------------------\n";
     
-    auto printArch = [&](const std::string& name, Archetype a) {
-        auto& c = archetypeConfigs[a];
+    for (auto const& [name, cfg] : archetypeConfigs) {
         std::cout << std::left << std::setw(10) << name 
                   << std::fixed << std::setprecision(2)
-                  << std::setw(10) << c.k 
-                  << std::setw(10) << c.gamma 
-                  << std::setw(10) << c.greedThreshold
-                  << "[" << c.minSkill << " - " << c.maxSkill << "]\n";
-    };
-
-    printArch("SHARK", Archetype::SHARK);
-    printArch("MANIAC", Archetype::MANIAC);
-    printArch("NIT", Archetype::NIT);
+                  << std::setw(10) << cfg.k 
+                  << std::setw(10) << cfg.gamma 
+                  << std::setw(10) << cfg.greedThreshold
+                  << "[" << cfg.minSkill << " - " << cfg.maxSkill << "]\n";
+    }
     std::cout << "--------------------------------------------------------\n\n";
 }
 

@@ -46,8 +46,8 @@ void testDerangementLogic() {
 void testHandUpdateAfterTrade() {
     std::cout << "[Test] Hand Update After Trade redistribution...\n";
     
-    AIPlayer p1("Bot1", 10000, 0.5f, 0.5f, 0.0f, 1.0f, 2.0f, Archetype::NORMAL, 1);
-    AIPlayer p2("Bot2", 10000, 0.5f, 0.5f, 0.0f, 1.0f, 2.0f, Archetype::NORMAL, 2);
+    AIPlayer p1("Bot1", 10000, 0.5f, 0.5f, 0.0f, 1.0f, 2.0f, "NORMAL", 1);
+    AIPlayer p2("Bot2", 10000, 0.5f, 0.5f, 0.0f, 1.0f, 2.0f, "NORMAL", 2);
     
     Card c1(Suit::HEARTS, Rank::ACE);
     Card c2(Suit::DIAMONDS, Rank::KING);

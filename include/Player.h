@@ -26,9 +26,7 @@ struct SwapRecord {
     SwapRecord() = default;
 };
 
-enum class Archetype { SHARK, MANIAC, NIT, NORMAL };
-
-
+// Archetype is now dynamic and stored as a string
 class Player {
     friend class GameManager;
     friend class BettingState;
@@ -53,7 +51,7 @@ protected:
     bool hasStayed = false;
     std::vector<int> bankrollHistory;
 
-    Archetype archetype;
+    std::string archetype;
     float baseSkillLevel;
     float baseConfidenceLevel;
     bool isTilt = false;
@@ -69,7 +67,7 @@ protected:
     float satisfactionTable[11];
 
 public:
-    Player(const std::string& name, int balance, float skillLevel, float confidenceLevel, float tradeDesire, float k = 1.0f, float gamma = 2.0f, Archetype archetype = Archetype::NORMAL);
+    Player(const std::string& name, int balance, float skillLevel, float confidenceLevel, float tradeDesire, float k = 1.0f, float gamma = 2.0f, const std::string& archetype = "NORMAL");
     virtual ~Player() {}
 
     // Getters
@@ -78,15 +76,8 @@ public:
     float getSkillLevel() const { return skillLevel; }
     float getConfidenceLevel() const { return confidenceLevel; }
     bool getIsEliminated() const { return isEliminated; }
-    Archetype getArchetype() const { return archetype; }
-    std::string getArchetypeString() const {
-        switch (archetype) {
-            case Archetype::SHARK: return "Shark";
-            case Archetype::MANIAC: return "Maniac";
-            case Archetype::NIT: return "Nit";
-            default: return "Normal";
-        }
-    }
+    std::string getArchetype() const { return archetype; }
+    std::string getArchetypeString() const { return archetype; }
     bool isHumanPlayer() const { return isHuman; }
     bool getIsTilt() const { return isTilt; }
     int getConsecutiveLosses() const { return consecutiveLosses; }
@@ -128,7 +119,7 @@ private:
     std::uniform_real_distribution<float> dist;
 
 public:
-    AIPlayer(const std::string& name, int balance, float skillLevel, float confidenceLevel, float tradeDesire, float k = 1.0f, float gamma = 2.0f, Archetype archetype = Archetype::NORMAL, unsigned seed = 0);
+    AIPlayer(const std::string& name, int balance, float skillLevel, float confidenceLevel, float tradeDesire, float k = 1.0f, float gamma = 2.0f, const std::string& archetype = "NORMAL", unsigned seed = 0);
     TradeDecision wantsToTrade(int roundID, int swapTurn, bool logMode = false, bool showLogic = false, SwapRecord* outRecord = nullptr) override;
     Card* getCardToTrade() override;
     void updateTradeDesire(int swapTurn) override;
@@ -137,7 +128,7 @@ public:
 
 class HumanPlayer : public Player {
 public:
-    HumanPlayer(const std::string& name, int balance, float skillLevel, float confidenceLevel, float tradeDesire, float k = 1.0f, float gamma = 2.0f, Archetype archetype = Archetype::NORMAL);
+    HumanPlayer(const std::string& name, int balance, float skillLevel, float confidenceLevel, float tradeDesire, float k = 1.0f, float gamma = 2.0f, const std::string& archetype = "NORMAL");
     TradeDecision wantsToTrade(int roundID, int swapTurn, bool logMode = false, bool showLogic = false, SwapRecord* outRecord = nullptr) override;
     Card* getCardToTrade() override;
     void updateTradeDesire(int swapTurn) override;

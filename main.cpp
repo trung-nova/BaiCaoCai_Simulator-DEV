@@ -33,11 +33,11 @@ T safeInput(const std::string &prompt, T minVal, T maxVal) {
   }
 }
 
-std::shared_ptr<Player> createAI(int id, Archetype arch, GameManager& manager, std::mt19937& gen) {
+std::shared_ptr<Player> createAI(int id, const std::string& arch, GameManager& manager, std::mt19937& gen) {
     auto& cfg = manager.archetypeConfigs[arch];
     std::uniform_real_distribution<float> sD(cfg.minSkill, cfg.maxSkill);
     
-    float meanC = (arch == Archetype::SHARK ? 0.2f : (arch == Archetype::MANIAC ? 0.8f : (arch == Archetype::NIT ? -0.5f : 0.0f)));
+    float meanC = (arch == "SHARK" ? 0.2f : (arch == "MANIAC" ? 0.8f : (arch == "NIT" ? -0.5f : 0.0f)));
     std::normal_distribution<float> cD(meanC, 0.1f);
     
     float skill = std::max(0.0f, std::min(1.0f, sD(gen)));
@@ -46,10 +46,9 @@ std::shared_ptr<Player> createAI(int id, Archetype arch, GameManager& manager, s
     return std::make_shared<AIPlayer>("AI_" + std::to_string(id), 10000, skill, conf, cfg.greedThreshold, cfg.k, cfg.gamma, arch, gen());
 }
 
-struct SimParams { int nP; int sC, mC, nC; };
-SimParams getParams(bool isInter) {
+struct SimParams { int nP; std::map<std::string, int> archCounts; };
+SimParams getParams(bool isInter, const std::map<std::string, ArchetypeConfig>& configs) {
     SimParams p;
-    p.sC = 0; p.mC = 0; p.nC = 0;
     
     std::cout << "\n" << BOLD << CYAN << "--- Player Archetype Selection ---" << RESET << "\n";
     int totalTarget = safeInput<int>("Total number of players (2-17): ", 2, 17);
@@ -58,25 +57,16 @@ SimParams getParams(bool isInter) {
     int aiNeeded = totalTarget - (isInter ? 1 : 0);
     int remaining = aiNeeded;
     
-    if (remaining > 0) {
-        p.sC = safeInput<int>("Number of Sharks (Max " + std::to_string(remaining) + "): ", 0, remaining);
-        remaining -= p.sC;
-    }
-    
-    if (remaining > 0) {
-        p.mC = safeInput<int>("Number of Maniacs (Max " + std::to_string(remaining) + "): ", 0, remaining);
-        remaining -= p.mC;
-    }
-    
-    if (remaining > 0) {
-        p.nC = safeInput<int>("Number of Nits (Max " + std::to_string(remaining) + "): ", 0, remaining);
-        remaining -= p.nC;
+    for (auto const& [name, cfg] : configs) {
+        if (remaining <= 0) break;
+        int count = safeInput<int>("Number of " + name + " (Max " + std::to_string(remaining) + "): ", 0, remaining);
+        p.archCounts[name] = count;
+        remaining -= count;
     }
 
-    // Safety: If user didn't fill all slots, fill with Nits
     if (remaining > 0) {
-        p.nC += remaining;
-        std::cout << YELLOW << "[System] Auto-filled " << remaining << " Nits to reach total player count." << RESET << "\n";
+        p.archCounts["NORMAL"] += remaining;
+        std::cout << YELLOW << "[System] Auto-filled " << remaining << " NORMAL players to reach total count." << RESET << "\n";
     }
 
     return p;
@@ -108,18 +98,15 @@ int main() {
     if (choice == 1 || choice == 2 || choice == 4) {
       bool isInter = (choice == 2), isLog = (choice == 4);
       int subMode = 1; if (choice == 1) subMode = safeInput<int>("1. Persistent | 2. Reset\nSelection: ", 1, 2);
-      SimParams p = getParams(isInter);
+      SimParams p = getParams(isInter, manager.archetypeConfigs);
       manager.displayArchetypeConfigs();
       std::vector<std::shared_ptr<Player>> players;
       if (isInter) { std::string hN; std::cout << "Enter your name: "; std::cin >> hN; players.push_back(std::make_shared<HumanPlayer>(hN, 10000, -1.0f, 0.0f, 0.0f)); }
       
-      int sAdded = 0, mAdded = 0, nAdded = 0;
-      while (players.size() < (size_t)p.nP) {
-          Archetype arch;
-          if (sAdded < p.sC) { arch = Archetype::SHARK; sAdded++; }
-          else if (mAdded < p.mC) { arch = Archetype::MANIAC; mAdded++; }
-          else { arch = Archetype::NIT; nAdded++; }
-          players.push_back(createAI(players.size() + 1, arch, manager, gen));
+      for (auto const& [archName, count] : p.archCounts) {
+          for (int i = 0; i < count; ++i) {
+              players.push_back(createAI(players.size() + 1, archName, manager, gen));
+          }
       }
       manager.setPlayers(players); if (isInter || isLog) manager.logMode = true;
       std::cout << "\n" << BOLD << CYAN << "--- Player Configuration ---" << RESET << "\n";
@@ -151,8 +138,12 @@ int main() {
         ss << "Mode: " << (isInter ? "Interactive" : (isLog ? "Log Mode" : "Standard")) << "\n"
            << "Submode: " << (subMode == 1 ? "Persistent" : "Reset Every Round") << "\n"
            << "Used Seed: " << manager.simulationSeed << "\n"
-           << "Players: " << p.nP << " (S:" << p.sC << ", M:" << p.mC << ", N:" << p.nC << ")\n"
-           << "Rounds: " << numR;
+           << "Players: " << p.nP << "\n"
+           << "Distribution: ";
+        for (auto const& [name, count] : p.archCounts) {
+            if (count > 0) ss << name << ":" << count << " ";
+        }
+        ss << "\n" << "Rounds: " << numR;
         manager.simulationParams = ss.str();
         if (manager.autoExport) manager.startStreaming();
         auto tS = std::chrono::high_resolution_clock::now();
@@ -194,7 +185,7 @@ int main() {
           manager.currentBatchID = b + 1;
           int nP = std::uniform_int_distribution<int>(2, 17)(gen);
           std::vector<std::shared_ptr<Player>> players;
-          for (int i = 0; i < nP; ++i) players.push_back(createAI(i + 1, Archetype::NORMAL, manager, gen));
+          for (int i = 0; i < nP; ++i) players.push_back(createAI(i + 1, "NORMAL", manager, gen));
           manager.setPlayers(players); 
           if (manager.autoExport) manager.logAIConfigs();
           manager.isFinalRound = true; 

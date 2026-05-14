@@ -71,7 +71,7 @@ public:
     std::vector<int> initialBalances;
     void initRNG(); // Initialize RNG with simulationSeed if >= 0
 
-    std::map<Archetype, ArchetypeConfig> archetypeConfigs;
+    std::map<std::string, ArchetypeConfig> archetypeConfigs;
 
     bool loadConfig(const std::string& filename);
     void displayArchetypeConfigs();

@@ -33,7 +33,7 @@ void testCardModulo() {
 void testHandScoring() {
     std::cout << "[Test] Hand Scoring Logic (Modulo 10)...\n";
     
-    AIPlayer p("Scorer", 10000, 0.5f, 0.5f, 0.0f, 1.0f, 2.0f, Archetype::NORMAL, 123);
+    AIPlayer p("Scorer", 10000, 0.5f, 0.5f, 0.0f, 1.0f, 2.0f, "NORMAL", 123);
     
     // Test 1: 1 + 2 + 3 = 6
     p.clearHand();
@@ -68,7 +68,7 @@ void testHandScoring() {
 void testSigmoidLogic() {
     std::cout << "[Test] AI Sigmoid Satisfaction Logic...\n";
     
-    AIPlayer p("TestBot", 10000, 1.0f, 0.5f, 0.0f, 2.0f, 2.0f, Archetype::SHARK, 123);
+    AIPlayer p("TestBot", 10000, 1.0f, 0.5f, 0.0f, 2.0f, 2.0f, "SHARK", 123);
     
     float s4 = p.getSatisfaction(4); 
     float s9 = p.getSatisfaction(9); 
@@ -85,7 +85,7 @@ void testSigmoidLogic() {
 
 void testTiltTriggering() {
     std::cout << "[Test] AI Tilt State Transitions...\n";
-    AIPlayer p("Tilter", 10000, 1.0f, 0.5f, 0.0f, 2.0f, 2.0f, Archetype::NORMAL, 123);
+    AIPlayer p("Tilter", 10000, 1.0f, 0.5f, 0.0f, 2.0f, 2.0f, "NORMAL", 123);
     
     assert(p.getIsTilt() == false);
     
@@ -107,7 +107,7 @@ void testTiltTriggering() {
 
 void testBaTienHuntingLogic() {
     std::cout << "[Test] Ba Tien Hunting Decision...\n";
-    AIPlayer p("Hunter", 10000, 0.9f, 0.5f, 0.0f, 2.0f, 2.0f, Archetype::SHARK, 123);
+    AIPlayer p("Hunter", 10000, 0.9f, 0.5f, 0.0f, 2.0f, 2.0f, "SHARK", 123);
     
     p.receiveCard(Card(Suit::HEARTS, Rank::JACK));
     p.receiveCard(Card(Suit::DIAMONDS, Rank::QUEEN));
