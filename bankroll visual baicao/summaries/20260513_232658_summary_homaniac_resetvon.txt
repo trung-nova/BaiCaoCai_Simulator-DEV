@@ -1,0 +1,32 @@
+SIMULATION RESEARCH SUMMARY
+Timestamp: 20260513_232658
+Parameters:
+Mode: Standard
+Submode: Reset Every Round
+Used Seed: 3659357364
+Players: 17
+Min Skill: 0.00
+Max Skill: 1.00
+Skill Concentration: 5.00
+Archetypes: Shark=0.00%, Maniac=100.00%, Nit=0.00%
+Rounds: 50000
+
+Final Results:
+Player      Skill     Balance     
+AI_1        0         9999        
+AI_2        0         9999        
+AI_3        0.109012  10010       
+AI_4        0         10001       
+AI_5        0.0787429 9999        
+AI_6        0         9999        
+AI_7        0.177668  9999        
+AI_8        0         9999        
+AI_9        0         9999        
+AI_10       0         9999        
+AI_11       0.115853  9999        
+AI_12       0         10001       
+AI_13       0.258486  9999        
+AI_14       0         10001       
+AI_15       0         9999        
+AI_16       0.164539  9999        
+AI_17       0.174093  9999        
