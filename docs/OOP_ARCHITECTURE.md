@@ -167,13 +167,16 @@ Hệ thống áp dụng cơ chế **Observer-like Logging**:
 - **Cấu trúc**: `AIPlayer` và `HumanPlayer` kế thừa từ lớp cơ sở `Player`. `BettingState`, `DealingState`,... kế thừa từ `GameState`.
 - **Lợi ích**: Tái sử dụng mã nguồn (Code Reuse). Các thuộc tính chung như `balance`, `name`, `hand` chỉ cần định nghĩa một lần ở lớp cha `Player`.
 
-### 6.2. Đa hình (Polymorphism)
+### 6.2. Đa hình (Polymorphism) - Kết quả của Kế thừa
 - **Cơ chế**: Sử dụng **Hàm thuần ảo (Pure Virtual Functions)**.
     - `virtual TradeDecision wantsToTrade(...) = 0;` trong lớp `Player`.
     - `virtual void handle(GameManager* context) = 0;` trong lớp `GameState`.
+- **Mối quan hệ nhân quả**: Trong sơ đồ, nhãn `Inheritance-Polymorphism` thể hiện rằng **Kế thừa là nền tảng để đạt được Đa hình**. 
+    - Nếu không có Kế thừa, `GameManager` không thể quản lý các đối tượng khác nhau trong cùng một danh sách.
+    - Nếu không có Đa hình, việc kế thừa chỉ là sao chép thuộc tính, không thể thay đổi chiến thuật linh hoạt.
 - **Đa hình tại thời điểm chạy (Runtime Polymorphism)**: 
     - Khi `GameManager` gọi `players[i]->wantsToTrade()`, chương trình sẽ tự động tìm đến đúng hàm của `AIPlayer` (nếu là máy) hoặc `HumanPlayer` (nếu là người) thông qua **VTable**. 
-    - Điều này giúp `GameManager` có thể quản lý mọi loại người chơi trong cùng một danh sách `std::vector<shared_ptr<Player>>` mà không cần biết cụ thể đó là lớp nào.
+    - Điều này giúp hệ thống xử lý hàng nghìn người chơi với các thuật toán khác nhau mà không cần sửa đổi mã nguồn điều khiển chính.
 
 ### 6.4. Phân tích Cấu trúc (Structural Deep Dive)
 
