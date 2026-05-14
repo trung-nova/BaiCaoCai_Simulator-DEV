@@ -59,5 +59,5 @@
 4.  **Phân tích**: Truy cập thư mục `data/` để lấy dữ liệu thô phục vụ nghiên cứu.
 
 ---
-**Disclaimer**: Dự án phục vụ mục đích nghiên cứu học thuật về tâm lý học hành vi.
+**Disclaimer**: Dự án phục vụ mục đích nghiên cứu học thuật về tâm lý học hành vi, không ủng hộ các hành vi cờ bạc không có kiểm soát.
 
