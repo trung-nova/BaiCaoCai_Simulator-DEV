@@ -155,9 +155,6 @@ int main() {
            << "Rounds: " << numR;
         manager.simulationParams = ss.str();
         if (manager.autoExport) manager.startStreaming();
-#ifdef USE_SQLITE
-        if (manager.autoExport) manager.db.beginTransaction();
-#endif
         auto tS = std::chrono::high_resolution_clock::now();
         for (int i = 0; i < numR; ++i) {
           if (subMode == 2) { for (auto& pl : manager.players) { pl->setBalance(10000); pl->setEliminated(false); } }
@@ -165,15 +162,9 @@ int main() {
           if (active <= 1) break;
           if (i == numR - 1) manager.isFinalRound = true;
           manager.playRound();
-#ifdef USE_SQLITE
-          if (manager.autoExport && (i + 1) % 1000 == 0) { manager.db.endTransaction(); manager.db.beginTransaction(); }
-#endif
           if (!isInter && !isLog && ((i + 1) % 100 == 0 || i == numR - 1)) std::cout << "\rProgress: " << (i + 1) << " / " << numR << " (" << std::fixed << std::setprecision(1) << (float)(i+1)/numR*100.0f << "%)" << std::flush;
         }
         if (manager.autoExport) {
-#ifdef USE_SQLITE
-            manager.db.endTransaction();
-#endif
             manager.stopStreaming();
             manager.exportResearchReports();
         }
@@ -190,9 +181,6 @@ int main() {
 
       if (manager.autoExport) {
           manager.startStreaming();
-#ifdef USE_SQLITE
-          manager.db.beginTransaction();
-#endif
       }
 
       std::stringstream ss;
@@ -211,16 +199,10 @@ int main() {
           if (manager.autoExport) manager.logAIConfigs();
           manager.isFinalRound = true; 
           manager.playRound();
-#ifdef USE_SQLITE
-          if (manager.autoExport && (b + 1) % 100 == 0) { manager.db.endTransaction(); manager.db.beginTransaction(); }
-#endif
           if ((b + 1) % 10 == 0) std::cout << "\rBatch Progress: " << (b + 1) << " / " << batches << std::flush;
       }
 
       if (manager.autoExport) {
-#ifdef USE_SQLITE
-          manager.db.endTransaction();
-#endif
           manager.stopStreaming();
           manager.exportResearchReports();
       }

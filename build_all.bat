@@ -2,7 +2,7 @@
 SETLOCAL EnableDelayedExpansion
 
 :: --- CONFIGURATION ---
-SET "BIN_CSV=game_sql.exe"
+SET "BIN_CSV=game.exe"
 SET "CC=g++"
 SET "FLAGS=-std=c++17 -I include -I . -O3 -static"
 
@@ -15,7 +15,7 @@ echo [1/3] Checking source files...
 if not exist main.cpp ( echo [ERROR] main.cpp missing! && pause && exit /b 1 )
 echo OK.
 
-:: 2. Build CSV Version
+:: 2. Build Game Version
 echo [2/3] Building Game Version (%BIN_CSV%)...
 %CC% %FLAGS% -c main.cpp -o main.o
 if !ERRORLEVEL! NEQ 0 goto :FAIL
@@ -42,7 +42,7 @@ echo OK.
 echo.
 echo ============================================================
 echo   BUILD COMPLETE!
-echo   - %BIN_CSV% (CSV Only)
+echo   - %BIN_CSV% (CSV Mode)
 echo ============================================================
 echo.
 echo [FINISH] Binary is ready.
