@@ -20,6 +20,3 @@ data/*.log
 .vscode/
 .idea/
 .clangd/
-.antigravity/
-
-

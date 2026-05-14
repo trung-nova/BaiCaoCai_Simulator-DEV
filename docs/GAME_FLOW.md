@@ -1,6 +1,6 @@
 # LUỒNG VẬN HÀNH HỆ THỐNG (GAME FLOW)
 
-Dự án sử dụng mô hình **State Machine (Máy trạng thái)** để quản lý vòng đời của một ván đấu. Hiểu luồng này giúp ông bạn giải mã được trình tự dữ liệu xuất hiện trong các file log/database.
+Dự án sử dụng mô hình **State Machine (Máy trạng thái)** để quản lý vòng đời của một ván đấu. Hiểu luồng này giúp người sử dụng giải mã được trình tự dữ liệu xuất hiện trong các file log/database.
 
 ## 1. Các trạng thái chính (Game States)
 

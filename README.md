@@ -24,6 +24,7 @@
 *   [**Kiến trúc OOP & Design Patterns**](./docs/OOP_ARCHITECTURE.md): Chi tiết về Class Diagram, State Pattern và quản lý bộ nhớ.
 *   [**Quy trình vận hành (Game Flow)**](./docs/GAME_FLOW.md): Sơ đồ máy trạng thái (State Machine) điều khiển ván đấu.
 *   [**Tài liệu Kỹ thuật Tổng quát**](./docs/TECHNICAL_DOCUMENTATION.md): Hướng dẫn biên dịch, cài đặt và cấu trúc hệ thống.
+*   [**Hướng dẫn Quy trình Mô phỏng**](./docs/SIMULATION_GUIDE.md): Quy trình chi tiết từ cấu hình đến chạy mô phỏng.
 
 ### 📊 Toán học & Dữ liệu
 *   [**Mô hình Toán học & Hành vi**](./docs/MATHEMATICAL_ANALYSIS.md): Chi tiết các hàm Sigmoid, chỉ số TILT và xác suất quyết định.
