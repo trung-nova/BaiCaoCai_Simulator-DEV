@@ -104,4 +104,13 @@ Dự án cung cấp 2 cấp độ kiểm tra:
 
 ---
 
-Hy vọng tài liệu này giúp ích cho việc nghiên cứu và phân tích dữ liệu AI của bạn.
+## 6. Cơ chế Seed phân cấp (Hierarchical Seeding)
+
+Để đảm bảo tính tái lập (Reproducibility) trong nghiên cứu khoa học, hệ thống triển khai cơ chế Seed phân cấp từ trên xuống dưới:
+
+1.  **Master Seed**: Được đọc từ `config.ini` hoặc nhập từ bàn phím. Seed này khởi tạo bộ sinh số ngẫu nhiên chính (`gen`) trong `main.cpp`.
+2.  **Archetype Assignment**: Master Seed quyết định việc gán nhóm nhân vật cho từng AI. Với cùng một Seed, Player 1 sẽ luôn là Shark, Player 2 luôn là Nit,...
+3.  **Parameter Sampling**: Sử dụng Master Seed để lấy mẫu (sampling) các chỉ số `Skill` và `Confidence` từ phân phối chuẩn. Điều này đảm bảo "năng lực" của quần thể AI là cố định giữa các lần chạy.
+4.  **Individual RNG**: Mỗi AI nhận một `Sub-seed` được sinh ra từ Master Seed để quản lý các quyết định ngẫu nhiên trong ván đấu (ví dụ: xác suất đổi bài).
+
+Cơ chế này cho phép các nhà nghiên cứu cô lập các biến số và kiểm chứng chính xác tác động của việc thay đổi cấu hình (như bật/tắt TILT) trên cùng một quần thể người chơi y hệt nhau.
