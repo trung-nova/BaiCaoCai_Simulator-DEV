@@ -11,24 +11,29 @@ Trong dự án này, Archetype không phải là một tập hợp các quy tắ
 ## 2. Phân tích 3 Archetype mẫu (Pre-defined Profiles)
 
 ### 2.1. SHARK (Cá mập) - Kẻ săn mồi lý trí
-- **Kỹ năng (`skill`):** 0.8 - 1.0 (Rất cao).
-- **Độ tự tin (`confidence`):** Khởi tạo quanh mức **0.2** (Lý trí, không thái quá).
-- **Độ nhạy cảm (`k`):** 2.5 (Phản ứng rất gắt với sự thay đổi điểm số).
-- **Độ ngại rủi ro (`gamma`):** 2.2 (Tiêu chuẩn hài lòng cao).
-- **Trạng thái TILT:** Khi bị TILT, tự tin vọt lên **+0.3** (đạt khoảng 0.5 - 0.7), kỹ năng giảm 10%.
-- **Chiến thuật:** Shark chơi cực kỳ kỷ luật. Nó biết rằng bài 8-9 điểm là rất tốt, nhưng có khả năng đặc biệt là **"Săn Ba Tiên"** (ném bài 9 điểm để cầu bài hình nếu đã có 2 lá Tây). Shark đại diện cho nhóm người chơi chuyên nghiệp, tối ưu hóa lợi nhuận kỳ vọng (EV) nhưng đôi khi mắc bẫy "quá thông minh" dẫn đến rủi ro lớn.
+- **Kỹ năng (`skill`):** 0.75 - 0.95 (Vượt trội, nhưng vẫn có xác suất sai lầm nhỏ).
+- **Độ tự tin (`mean_confidence`):** 0.2 (Điềm tĩnh, tự tin dựa trên năng lực).
+- **Độ nhạy cảm (`k`):** 1.2.
+- **Độ ngại rủi ro (`gamma`):** 2.5 (Tiêu chuẩn hài lòng cao).
+- **Chiến thuật:** Shark chơi cực kỳ kỷ luật, tối ưu hóa lợi nhuận kỳ vọng (EV) và có khả năng "Săn Ba Tiên" cực tốt.
 
-### 2.2. MANIAC (Kẻ điên) - Con thiêu thân rủi ro
-- **Kỹ năng (`skill`):** 0.3 - 0.6 (Trung bình kém).
-- **Độ nhạy cảm (`k`):** 1.0 (Lỳ lợm, không quá quan tâm đến điểm số).
-- **Độ tham lam (`greed`):** Cao.
-- **Chiến thuật:** Maniac thích cảm giác mạnh. Nó thường đổi bài liên tục ngay cả khi đang cầm điểm trung bình (5-6 điểm). Hành động của Maniac mang tính chất bộc phát và khó đoán, thường gây nhiễu cho các phân tích xác suất thông thường.
-
-### 2.3. NIT (Kẻ nhát) - Người chơi bảo thủ
-- **Kỹ năng (`skill`):** 0.4 - 0.7 (Trung bình).
+### 2.2. NIT (Kẻ nhát) - Người chơi bảo thủ
+- **Kỹ năng (`skill`):** 0.45 - 0.75 (Trung bình khá).
 - **Độ ngại rủi ro (`gamma`):** 3.0 (Cực cao).
-- **Tự tin (`confidence`):** Thường thấp hoặc âm.
-- **Chiến thuật:** Nit cực kỳ sợ thua. Nó thường "Dằn" bài ngay khi có điểm số an toàn và hiếm khi thực hiện các lượt đổi bài mạo hiểm. Nit đại diện cho nhóm người chơi ưu tiên bảo toàn vốn hơn là tìm kiếm lợi nhuận lớn.
+- **Độ tự tin (`mean_confidence`):** -0.5 (Luôn lo sợ bài đối phương cao hơn).
+- **Chiến thuật:** Nit ưu tiên bảo toàn vốn. Nó thường dừng lại (STAY) sớm khi cảm thấy an toàn, ít khi mạo hiểm trừ khi bài quá xấu.
+
+### 2.3. MANIAC (Kẻ điên) - Con thiêu thân rủi ro
+- **Kỹ năng (`skill`):** 0.20 - 0.50 (Thấp).
+- **Độ tự tin (`mean_confidence`):** 0.8 (Ảo tưởng sức mạnh, cực kỳ hung hãn).
+- **Độ nhạy cảm (`k`):** 0.8 (Lỳ lợm, bốc đồng).
+- **Chiến thuật:** Maniac thích cảm giác mạnh và đổi bài liên tục. Với kỹ năng thấp, Maniac thường rơi vào trạng thái TILT và đốt sạch tiền nhanh nhất bàn.
+
+### 2.4. FISH (Cá con) - Nguồn thanh khoản của bàn chơi
+- **Kỹ năng (`skill`):** 0.05 - 0.30 (Rất thấp).
+- **Độ tự tin (`mean_confidence`):** 0.4 (Chơi theo cảm tính, lạc quan tếu).
+- **Độ tham lam (`greed`):** Rất cao (0.2).
+- **Chiến thuật:** Fish là những người chơi không có chiến thuật rõ ràng, thường đổi bài dựa trên sự "linh cảm" thay vì xác suất. Đây là mục tiêu chính của các Shark.
 
 ---
 
@@ -41,7 +46,8 @@ Hệ thống cho phép bạn tự định nghĩa Archetype mới bằng cách hi
 | **`k`** | Kiểm soát "độ gắt" của cảm xúc. `k` cao làm AI trở nên quyết đoán, `k` thấp làm AI trở nên phân vân. |
 | **`gamma`** | Dịch chuyển điểm bão hòa của độ thỏa mãn. `gamma` cao buộc AI phải có điểm cao mới thấy "đủ". |
 | **`greed_threshold`** | Điều khiển tốc độ tích lũy của `Trade Desire`. Chỉ số này càng cao, AI càng "nóng lòng" muốn đổi bài qua mỗi lượt. |
-| **`min/max_skill`** | Xác định "trí thông minh" của AI. AI thông minh sẽ biết ưu tiên xác suất thắng thay vì cảm xúc từ hàm Sigmoid. |
+| **`mean_confidence`** | Tâm thế khởi đầu của AI. Cao là hung hãn (Maniac), thấp là rụt rè (Nit). |
+| **`min/max_skill`** | Xác định "trí thông minh" của AI. AI thông minh (>0.5) sẽ biết ưu tiên xác suất thắng thay vì cảm xúc. |
 
 ---
 
