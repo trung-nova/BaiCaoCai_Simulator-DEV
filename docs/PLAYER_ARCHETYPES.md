@@ -11,7 +11,7 @@ Trong dự án này, Archetype không phải là một tập hợp các quy tắ
 ## 2. Phân tích 5 Archetype mẫu (Pre-defined Profiles)
 
 ### 2.1. SHARK (Cá mập) - Kẻ săn mồi lý trí
-- **Kỹ năng (`skill`):** 0.75 - 0.95 (Vượt trội, nhưng vẫn có xác suất sai lầm nhỏ).
+- **Kỹ năng (`skill`):** 0.75 - 0.99 (Đỉnh cao kỹ năng, gần như tuyệt đối).
 - **Độ tự tin (`mean_confidence`):** 0.2 (Điềm tĩnh, tự tin dựa trên năng lực).
 - **Chiến thuật:** Shark chơi cực kỳ kỷ luật, tối ưu hóa lợi nhuận kỳ vọng (EV) và có khả năng "Săn Ba Tiên" cực tốt.
 
@@ -32,7 +32,7 @@ Trong dự án này, Archetype không phải là một tập hợp các quy tắ
 - **Chiến thuật:** Đây là nhóm người chơi phổ biến nhất, hành động cân bằng giữa lý trí và cảm xúc, không quá liều lĩnh cũng không quá bảo thủ.
 
 ### 2.5. FISH (Cá con) - Nguồn thanh khoản của bàn chơi
-- **Kỹ năng (`skill`):** 0.05 - 0.30 (Rất thấp).
+- **Kỹ năng (`skill`):** 0.01 - 0.30 (Rất thấp, gần như ngẫu nhiên).
 - **Độ tự tin (`mean_confidence`):** 0.4 (Chơi theo cảm tính, lạc quan tếu).
 - **Chiến thuật:** Fish là những người chơi không có chiến thuật rõ ràng, thường đổi bài dựa trên sự "linh cảm" thay vì xác suất. Đây là mục tiêu chính của các Shark.
 
@@ -40,11 +40,11 @@ Trong dự án này, Archetype không phải là một tập hợp các quy tắ
 
 | Archetype | Skill | Confidence | k | Gamma | Greed | Lối chơi chủ đạo |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **SHARK** | 0.75-0.95 | 0.2 | 1.2 | 2.5 | 0.7 | Lý trí, tối ưu EV |
+| **SHARK** | 0.75-0.99 | 0.2 | 1.2 | 2.5 | 0.7 | Lý trí, tối ưu EV |
 | **NIT** | 0.45-0.75 | -0.5 | 1.5 | 3.0 | 0.9 | Bảo thủ, an toàn |
 | **MANIAC** | 0.20-0.50 | 0.8 | 0.8 | 1.5 | 0.4 | Hung hãn, rủi ro |
 | **NORMAL** | 0.35-0.65 | 0.0 | 1.0 | 2.0 | 0.5 | Cân bằng, thực tế |
-| **FISH** | 0.05-0.30 | 0.4 | 0.5 | 1.2 | 0.2 | Cảm tính, ngẫu nhiên |
+| **FISH** | 0.01-0.30 | 0.4 | 0.5 | 1.2 | 0.2 | Cảm tính, ngẫu nhiên |
 
 ---
 
