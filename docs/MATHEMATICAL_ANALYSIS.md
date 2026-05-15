@@ -17,9 +17,19 @@ Dự án này không chỉ là một hệ thống mô phỏng trò chơi mà cò
 
 ## 1. Hàm Thỏa mãn (Logistic Sigmoid Satisfaction)
 
-Cốt lõi của tâm lý AI là sự ánh xạ từ điểm số thực tế ($x \in [0, 10]$) sang mức độ hài lòng cảm tính ($S \in [0, 1]$). Chúng ta sử dụng hàm **Logistic Sigmoid** để mô phỏng sự bão hòa của cảm xúc:
+Cốt lõi của tâm lý AI là sự ánh xạ từ điểm số thực tế ($x$) sang mức độ hài lòng cảm tính ($S \in [0, 1]$). Trong mô hình này, **$x \in [0, 10]$**, trong đó:
+- **0 - 9**: Điểm số bình thường của Bài Cào.
+- **10**: Giá trị đặc biệt gán cho bộ bài **Ba Tiên**.
+
+Chúng ta sử dụng hàm **Logistic Sigmoid** để mô phỏng sự bão hòa của cảm xúc:
 
 $$S(x) = \frac{1}{1 + e^{-k(x - x_0)}}$$
+
+### 1.0. Tại sao dùng Sigmoid thay vì các hàm khác?
+Trong quá trình thiết kế, hàm Sigmoid được ưu tiên hơn các hàm tuyến tính hay lũy thừa vì:
+1.  **Vùng xám (Gray Area)**: Khác với `If/Else` tạo ranh giới cứng, Sigmoid tạo ra một dải phân vân. Ở mức hài lòng ~0.5, AI sẽ có những quyết định không nhất quán, mô phỏng đúng sự lưỡng lự của con người.
+2.  **Sự bão hòa (Saturation)**: Phản ánh đúng quy luật tâm lý: khi bài đã 8-9 điểm, việc tăng thêm 1 điểm không mang lại cảm giác hưng phấn mạnh bằng việc tăng từ 3 lên 5 điểm.
+3.  **Tham số hóa tính cách**: Chỉ cần chỉnh $k$ và $x_0$, ta có thể biến một AI từ "nhát gan" (Nit) sang "liều lĩnh" (Maniac) mà không cần viết lại logic code.
 
 ### 1.1. Tham số $k$ (Steepness - Độ nhạy cảm)
 Tham số $k$ điều khiển độ dốc của hàm, đại diện cho tính cách của người chơi:

@@ -23,6 +23,7 @@ struct ArchetypeConfig {
     float greedThreshold = 0.5f;
     float minSkill = 0.0f;
     float maxSkill = 1.0f;
+    float meanConfidence = 0.0f;
 };
 
 

@@ -17,30 +17,37 @@ Tài liệu này không chỉ trả lời câu hỏi, mà còn giúp bạn dẫn
 
 ## 🧠 NHÓM 2: TOÁN HỌC VÀ MÔ HÌNH HÀNH VI (MODELING & MATH)
 
-### 3. Hàm Sigmoid của em có gì đặc biệt hơn các điều kiện If/Else thông thường?
-- **Cách trả lời**: "If/Else tạo ra các ranh giới cứng (Hard Thresholds), không phản ánh đúng tâm lý con người vốn luôn có 'vùng xám' (Ambiguity). Hàm Sigmoid cung cấp một **Soft Threshold**, cho phép AI có những mức độ phân vân khác nhau. Đặc biệt, em đã lồng ghép biến `confidence` và `gamma` để **tịnh tiến (shift)** đường cong này, giúp AI có khả năng thay đổi tâm lý theo diễn biến thực tế của ván bài."
+### 3. Hàm Sigmoid của em có gì đặc biệt hơn các điều kiện If/Else thông thường? Hay tại sao không dùng hàm Tuyến tính?
+- **Cách trả lời**: "If/Else tạo ra các ranh giới cứng (Hard Thresholds), không phản ánh đúng tâm lý con người vốn luôn có 'vùng xám' (Ambiguity). Hàm Sigmoid cung cấp một **Soft Threshold**, cho phép AI có những mức độ phân vân khác nhau. Đặc biệt, em đã lồng ghép biến `confidence` và `gamma` để **tịnh tiến (shift)** đường cong này, giúp AI có khả năng thay đổi tâm lý theo diễn biến thực tế của ván bài.
+  So với hàm tuyến tính (y=x/10), Sigmoid phản ánh đúng quy luật **Lợi ích cận biên giảm dần** và sự bão hòa cảm xúc: khi bài đã 8-9 điểm, việc tăng thêm 1 điểm không làm người chơi hưng phấn bằng việc tăng từ 3 lên 5 điểm."
 
-### 4. Tại sao lại cần đến Seeding phân cấp (Hierarchical Seeding)?
+### 4. Tại sao biến x trong hàm Sigmoid lại nhận giá trị từ 0 đến 10? Điểm 10 ở đâu ra?
+- **Cách trả lời**: "Thông thường bài Cào chỉ tính từ 0 đến 9 điểm. Tuy nhiên, trong simulator này, em gán giá trị **10** cho bộ bài **Ba Tiên**. Việc này giúp đưa Ba Tiên vào cùng một thang đo toán học với các bộ bài khác, cho phép hàm Sigmoid xử lý nó như một trạng thái 'Cực kỳ thỏa mãn' (S xấp xỉ 1) mà không cần viết thêm các điều kiện đặc biệt trong hàm tính xác suất."
+
+### 5. Tại sao lại cần đến Seeding phân cấp (Hierarchical Seeding)?
 - **Cách trả lời**: "Đây là để đảm bảo tính **Tất định (Determinism)** trong một hệ thống ngẫu nhiên. Trong khoa học mô phỏng, nếu kết quả không thể tái lập (Reproduce) thì kết quả đó không có giá trị kiểm chứng. Với hệ thống của em, dù thầy cô chạy 1 tỷ ván đấu, chỉ cần giữ đúng Seed ban đầu, mọi hành vi nhỏ nhất của từng AI sẽ lặp lại chính xác 100%. Đây là chìa khóa để debug các hành vi phức tạp."
 
 ---
 
 ## 🎯 NHÓM 3: CHIẾN THUẬT VÀ QUẢN TRỊ RỦI RO (STRATEGY & RISK)
 
-### 5. Tại sao nhóm Shark (AI giỏi nhất) đôi khi lại thua lỗ nặng nề?
+### 6. Tại sao nhóm Shark (AI giỏi nhất) đôi khi lại thua lỗ nặng nề?
 - **Cách trả lời (Đỉnh cao)**: "Thưa thầy, đó chính là hiện tượng **'Sự sụp đổ của tối ưu hóa cục bộ'**. Shark được lập trình để săn lùng 'Ba Tiên' (thắng tuyệt đối), nên nó sẵn sàng vứt bỏ những tay bài 8, 9 điểm (vốn có tỉ lệ thắng rất cao). Trong xác suất, việc theo đuổi một biến cố có xác suất cực thấp nhưng lợi nhuận cực cao mà không có đủ vốn dự phòng sẽ dẫn đến việc **phá sản trước khi biến cố đó kịp xảy ra**. Đây là một bài học thực tế về quản trị rủi ro mà mô hình của em đã chứng minh được."
 
-### 6. Logic của em về việc Nhà cái thắng khi hòa điểm có bất công không?
+### 7. Chỉ số Confidence (Tự tin) của AI thay đổi như thế nào? Ví dụ với Shark?
+- **Cách trả lời**: "Chỉ số này không cố định mà biến thiên theo trạng thái tâm lý. Ví dụ, một **Shark** bình thường có độ tự tin thấp (~0.2) để giữ sự tỉnh táo. Tuy nhiên, khi rơi vào trạng thái **TILT** (thua 5 ván liên tiếp hoặc mất 30% vốn), hệ thống sẽ cộng thêm **0.3** vào chỉ số này. Sự tăng vọt tự tin ảo này làm dịch chuyển đường cong Sigmoid, khiến Shark trở nên liều lĩnh hơn và dễ dàng đưa ra các quyết định sai lầm, mô phỏng chính xác tâm lý 'cay cú' của con bạc thực tế."
+
+### 8. Logic của em về việc Nhà cái thắng khi hòa điểm có bất công không?
 - **Cách trả lời**: "Đây chính là **House Edge (Lợi thế nhà cái)**. Trong mọi trò chơi cá cược, nhà cái luôn cần một lợi thế nhỏ để bù đắp rủi ro và chi phí vận hành. Về mặt lập trình, đây là một điều kiện biên (Edge case) quan trọng trong `EvalState`, giúp đảm bảo dòng tiền trong game luôn có xu hướng chảy về phía nhà cái trong dài hạn, mô phỏng đúng bản chất của các sòng bài thực tế."
 
 ---
 
 ## 🛠️ NHÓM 4: CÔNG NGHỆ VÀ LẬP TRÌNH (ENGINEERING)
 
-### 7. Tại sao dùng Smart Pointers thay vì con trỏ thường?
+### 9. Tại sao dùng Smart Pointers thay vì con trỏ thường?
 - **Cách trả lời**: "Để loại bỏ hoàn toàn **Memory Leaks** và **Dangling Pointers**. Đặc biệt là `shared_ptr<Player>`, vì một đối tượng Player được quản lý bởi `GameManager` nhưng lại thường xuyên được các `State` khác nhau truy cập. Việc dùng Smart Pointers giúp em tập trung vào logic thuật toán thay vì phải quản lý việc `delete` thủ công, vốn rất dễ gây lỗi trong các hệ thống phức tạp."
 
-### 8. Em đã kiểm thử (Test) dự án như thế nào?
+### 10. Em đã kiểm thử (Test) dự án như thế nào?
 - **Cách trả lời**: "Em áp dụng quy trình kiểm thử 2 lớp:
     1. **Unit Test (C++)**: Kiểm tra các module lõi như tính điểm, chia bài.
     2. **Integration Test (Python)**: Sử dụng script Python để chạy giả lập thực tế, kiểm tra xem tệp CSV sinh ra có đúng định dạng và dữ liệu có bị sai lệch không. Điều này đảm bảo hệ thống ổn định từ đầu đến cuối (End-to-End)."

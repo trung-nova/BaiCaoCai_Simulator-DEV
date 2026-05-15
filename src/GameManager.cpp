@@ -219,6 +219,7 @@ bool GameManager::loadConfig(const std::string& filename) {
         else if (key == "greed_threshold") archetypeConfigs[currentSection].greedThreshold = value;
         else if (key == "min_skill") archetypeConfigs[currentSection].minSkill = value;
         else if (key == "max_skill") archetypeConfigs[currentSection].maxSkill = value;
+        else if (key == "mean_confidence") archetypeConfigs[currentSection].meanConfidence = value;
     }
     std::cout << "[Config] Successfully loaded archetype personalities from " << filename << "\n";
     return true;
@@ -230,8 +231,9 @@ void GameManager::displayArchetypeConfigs() {
               << std::setw(10) << "k" 
               << std::setw(10) << "gamma" 
               << std::setw(10) << "Greed" 
+              << std::setw(10) << "Conf"
               << std::setw(15) << "Skill Range" << "\n";
-    std::cout << "--------------------------------------------------------\n";
+    std::cout << "------------------------------------------------------------------\n";
     
     for (auto const& [name, cfg] : archetypeConfigs) {
         std::cout << std::left << std::setw(10) << name 
@@ -239,9 +241,10 @@ void GameManager::displayArchetypeConfigs() {
                   << std::setw(10) << cfg.k 
                   << std::setw(10) << cfg.gamma 
                   << std::setw(10) << cfg.greedThreshold
+                  << std::setw(10) << cfg.meanConfidence
                   << "[" << cfg.minSkill << " - " << cfg.maxSkill << "]\n";
     }
-    std::cout << "--------------------------------------------------------\n\n";
+    std::cout << "------------------------------------------------------------------\n\n";
 }
 
 void GameManager::clearScreen() {

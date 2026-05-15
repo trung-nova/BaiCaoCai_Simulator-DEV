@@ -12,9 +12,11 @@ Trong dự án này, Archetype không phải là một tập hợp các quy tắ
 
 ### 2.1. SHARK (Cá mập) - Kẻ săn mồi lý trí
 - **Kỹ năng (`skill`):** 0.8 - 1.0 (Rất cao).
-- **Độ nhạy cảm (`k`):** 2.5 (Phản ứng nhanh với thay đổi điểm số).
-- **Độ ngại rủi ro (`gamma`):** 2.2 (Khó hài lòng).
-- **Chiến thuật:** Shark chơi cực kỳ kỷ luật. Nó biết rằng bài 8-9 điểm là rất tốt, nhưng nếu có cơ hội đổi để lấy "Ba Tiên", nó sẽ tính toán rủi ro cực kỳ chi tiết. Shark đại diện cho nhóm người chơi chuyên nghiệp, tối ưu hóa lợi nhuận kỳ vọng (EV).
+- **Độ tự tin (`confidence`):** Khởi tạo quanh mức **0.2** (Lý trí, không thái quá).
+- **Độ nhạy cảm (`k`):** 2.5 (Phản ứng rất gắt với sự thay đổi điểm số).
+- **Độ ngại rủi ro (`gamma`):** 2.2 (Tiêu chuẩn hài lòng cao).
+- **Trạng thái TILT:** Khi bị TILT, tự tin vọt lên **+0.3** (đạt khoảng 0.5 - 0.7), kỹ năng giảm 10%.
+- **Chiến thuật:** Shark chơi cực kỳ kỷ luật. Nó biết rằng bài 8-9 điểm là rất tốt, nhưng có khả năng đặc biệt là **"Săn Ba Tiên"** (ném bài 9 điểm để cầu bài hình nếu đã có 2 lá Tây). Shark đại diện cho nhóm người chơi chuyên nghiệp, tối ưu hóa lợi nhuận kỳ vọng (EV) nhưng đôi khi mắc bẫy "quá thông minh" dẫn đến rủi ro lớn.
 
 ### 2.2. MANIAC (Kẻ điên) - Con thiêu thân rủi ro
 - **Kỹ năng (`skill`):** 0.3 - 0.6 (Trung bình kém).

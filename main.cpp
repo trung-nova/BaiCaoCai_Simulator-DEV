@@ -37,7 +37,7 @@ std::shared_ptr<Player> createAI(int id, const std::string& arch, GameManager& m
     auto& cfg = manager.archetypeConfigs[arch];
     std::uniform_real_distribution<float> sD(cfg.minSkill, cfg.maxSkill);
     
-    float meanC = (arch == "SHARK" ? 0.2f : (arch == "MANIAC" ? 0.8f : (arch == "NIT" ? -0.5f : 0.0f)));
+    float meanC = cfg.meanConfidence;
     std::normal_distribution<float> cD(meanC, 0.1f);
     
     float skill = std::max(0.0f, std::min(1.0f, sD(gen)));
